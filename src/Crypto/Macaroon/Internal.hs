@@ -21,10 +21,8 @@ import           Data.Byteable
 import qualified Data.ByteString        as BS
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8  as B8
-import           Data.Char
 import           Data.Hex
-import           Data.Serialize
-import           Data.Word
+import           Data.List
 
 -- |Type alias for Macaroons and Caveat keys and identifiers
 type Key = BS.ByteString
@@ -45,6 +43,14 @@ data Macaroon = MkMacaroon { location   :: Location
                            -- ^ Macaroon HMAC signature
                            } deriving (Eq)
 
+instance Show Macaroon where
+    -- We use intercalate because unlines would add a trailing newline
+    show (MkMacaroon l i c s) = intercalate "\n" [
+                      "location " ++ B8.unpack l
+                    , "identifier " ++ B8.unpack i
+                    , concatMap show c
+                    , "signature " ++ B8.unpack (hex s)
+                    ]
 
 instance NFData Macaroon where
     rnf (MkMacaroon loc ident cavs sig) = rnf loc `seq` rnf ident `seq` rnf cavs `seq` rnf sig
@@ -60,20 +66,17 @@ data Caveat = MkCaveat { cid :: Key
 
                        } deriving (Eq)
 
+instance Show Caveat where
+    show (MkCaveat c v l) | v == BS.empty = "cid " ++ B8.unpack c
+                          | otherwise = unlines [ "cid " ++ B8.unpack c
+                                                , "vid " ++ B8.unpack v
+                                                , "cl " ++ B8.unpack l
+                                                ]
+
+
 instance NFData Caveat where
     rnf (MkCaveat cid vid cl) = rnf cid `seq` rnf vid `seq` rnf cl
 
-
-putPacket :: BS.ByteString -> BS.ByteString -> BS.ByteString
-putPacket key dat = BS.concat [
-    B8.map toLower . hex . encode $ (fromIntegral size :: Word16)
-    , key
-    , " "
-    , dat
-    , "\n"
-    ]
-  where
-    size = 4 + 2 + BS.length key + BS.length dat
 
 addCaveat :: Location
           -> Key
@@ -84,5 +87,5 @@ addCaveat loc cid vid m = m { caveats = cavs ++ [cav'], signature = sig}
   where
     cavs = caveats m
     cav' = MkCaveat cid vid loc
-    sig = toBytes $ (hmac (signature m) (BS.append vid cid) :: HMAC SHA256)
+    sig = toBytes (hmac (signature m) (BS.append vid cid) :: HMAC SHA256)
 

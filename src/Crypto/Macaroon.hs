@@ -8,18 +8,16 @@ Maintainer  : julien.tanguy@jhome.fr
 Stability   : experimental
 Portability : portable
 
-
 Pure haskell implementations of macaroons.
 
 Warning: this implementation has not been audited by security experts.
-Use it with caution.
+Do not use in production
 
 
 References:
 
 - Macaroons: Cookies with Contextual Caveats for Decentralized Authorization in the Cloud <http://research.google.com/pubs/pub41892.html>
 - Time for better security in NoSQL <http://hackingdistributed.com/2014/11/23/macaroons-in-hyperdex>
-
 -}
 module Crypto.Macaroon (
     -- * Types
@@ -50,11 +48,14 @@ module Crypto.Macaroon (
 
 import           Crypto.Cipher.AES
 import           Crypto.Hash
+import           Data.Char
 import           Data.Byteable
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Base64.URL as B64
 import qualified Data.ByteString.Char8      as B8
 import           Data.Hex
+import           Data.Word
+import           Data.Serialize
 
 import           Crypto.Macaroon.Internal
 
@@ -62,7 +63,7 @@ import           Crypto.Macaroon.Internal
 create :: Key -> Key -> Location -> Macaroon
 create secret ident loc = MkMacaroon loc ident [] (toBytes (hmac derivedKey ident :: HMAC SHA256))
   where
-    derivedKey = toBytes $ (hmac "macaroons-key-generator" secret :: HMAC SHA256)
+    derivedKey = toBytes (hmac "macaroons-key-generator" secret :: HMAC SHA256)
 
 caveatLoc :: Caveat -> Location
 caveatLoc = cl
@@ -74,17 +75,7 @@ caveatVId :: Caveat -> Key
 caveatVId = vid
 
 inspect :: Macaroon -> String
-inspect m = unlines [ "location " ++ show (location m)
-                    , "identifier " ++ show (identifier m)
-                    , (concatMap (showCav (location m)) (caveats m))
-                    , "signature " ++ show (hex $ signature m)
-                    ]
-  where
-    showCav loc c | cl c == loc && vid c == BS.empty = "cid " ++ show (cid c)
-                  | otherwise = unlines [ "cid " ++ show (cid c)
-                                        , "vid " ++ show (vid c)
-                                        , "cl " ++ show (cl c)
-                                        ]
+inspect = show
 
 serialize :: Macaroon -> BS.ByteString
 serialize m = B8.filter (/= '=') . B64.encode $ packets
@@ -100,6 +91,16 @@ serialize m = B8.filter (/= '=') . B64.encode $ packets
                                             , putPacket "vid" (vid c)
                                             , putPacket "cl" (cl c)
                                             ]
+    putPacket key dat = BS.concat [
+        B8.map toLower . hex . encode $ (fromIntegral size :: Word16)
+        , key
+        , " "
+        , dat
+        , "\n"
+        ]
+      where
+        size = 4 + 2 + BS.length key + BS.length dat
+
 
 
 

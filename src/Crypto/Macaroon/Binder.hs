@@ -24,5 +24,5 @@ newtype Binder = Binder { bind :: Macaroon -> Macaroon -> BS.ByteString }
 
 -- | Binder which concatenates the two signatures and hashes them
 hashSigs :: Binder
-hashSigs = Binder $ \m m' -> toBytes $ (HMAC . hash $ BS.append (toBytes $ signature m') (toBytes $ signature m) :: HMAC SHA256)
+hashSigs = Binder $ \m m' -> toBytes (HMAC . hash $ BS.append (toBytes $ signature m') (toBytes $ signature m) :: HMAC SHA256)
 
