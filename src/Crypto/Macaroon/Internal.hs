@@ -27,9 +27,10 @@ import           Data.List
 -- |Type alias for Macaroons and Caveat keys and identifiers
 type Key = BS.ByteString
 
--- |Type alias For Macaroons and Caveat locations
+-- |Type alias for Macaroons and Caveat locations
 type Location = BS.ByteString
 
+-- |Type alias for Macaroons signatures
 type Sig = BS.ByteString
 
 -- | Main structure of a macaroon
@@ -43,6 +44,7 @@ data Macaroon = MkMacaroon { location   :: Location
                            -- ^ Macaroon HMAC signature
                            } deriving (Eq)
 
+-- | show instance conforming to the @inspect@ "specification"
 instance Show Macaroon where
     -- We use intercalate because unlines would add a trailing newline
     show (MkMacaroon l i c s) = intercalate "\n" [
@@ -52,6 +54,7 @@ instance Show Macaroon where
                     , "signature " ++ B8.unpack (hex s)
                     ]
 
+-- | NFData instance for use in the benchmark
 instance NFData Macaroon where
     rnf (MkMacaroon loc ident cavs sig) = rnf loc `seq` rnf ident `seq` rnf cavs `seq` rnf sig
 
@@ -66,6 +69,7 @@ data Caveat = MkCaveat { cid :: Key
 
                        } deriving (Eq)
 
+-- | show instance conforming to the @inspect@ "specification"
 instance Show Caveat where
     show (MkCaveat c v l) | v == BS.empty = "cid " ++ B8.unpack c
                           | otherwise = unlines [ "cid " ++ B8.unpack c
@@ -74,10 +78,12 @@ instance Show Caveat where
                                                 ]
 
 
+-- | NFData instance for use in the benchmark
 instance NFData Caveat where
     rnf (MkCaveat cid vid cl) = rnf cid `seq` rnf vid `seq` rnf cl
 
-
+-- | Primitive to add a First or Third party caveat to a macaroon
+-- For internal use only
 addCaveat :: Location
           -> Key
           -> Key

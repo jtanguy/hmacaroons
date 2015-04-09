@@ -27,6 +27,7 @@ Implementations
 - [C](https://github.com/rescrv/libmacaroons)
 - [Java](https://github.com/nitram509/jmacaroons)
 - [Python](https://github.com/ecordell/pymacaroons)
+- [Node.js](https://github.com/nitram509/macaroons.js)
 
 TODO
 ====

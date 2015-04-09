@@ -25,6 +25,7 @@ module Crypto.Macaroon (
     , Caveat
     , Key
     , Location
+    , Sig
     -- * Accessing functions
     -- ** Macaroons
     , location
@@ -65,18 +66,23 @@ create secret ident loc = MkMacaroon loc ident [] (toBytes (hmac derivedKey iden
   where
     derivedKey = toBytes (hmac "macaroons-key-generator" secret :: HMAC SHA256)
 
+-- | Caveat target location
 caveatLoc :: Caveat -> Location
 caveatLoc = cl
 
+-- | Caveat identifier
 caveatId :: Caveat -> Key
 caveatId = cid
 
+-- | Caveat verification identifier
 caveatVId :: Caveat -> Key
 caveatVId = vid
 
+-- | Inspect a macaroon's contents. For debugging purposes.
 inspect :: Macaroon -> String
 inspect = show
 
+-- | Serialize a macaroon in an URL-safe Base64 encoding
 serialize :: Macaroon -> BS.ByteString
 serialize m = B8.filter (/= '=') . B64.encode $ packets
   where
