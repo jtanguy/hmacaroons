@@ -42,21 +42,14 @@ module Crypto.Macaroon (
     , inspect
     , addFirstPartyCaveat
     , addThirdPartyCaveat
-
-    -- * Prepare Macaroons for transfer
-    , serialize
     ) where
 
 import           Crypto.Cipher.AES
 import           Crypto.Hash
-import           Data.Char
 import           Data.Byteable
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Base64.URL as B64
 import qualified Data.ByteString.Char8      as B8
-import           Data.Hex
-import           Data.Word
-import           Data.Serialize
 
 import           Crypto.Macaroon.Internal
 
@@ -81,34 +74,6 @@ caveatVId = vid
 -- | Inspect a macaroon's contents. For debugging purposes.
 inspect :: Macaroon -> String
 inspect = show
-
--- | Serialize a macaroon in an URL-safe Base64 encoding
-serialize :: Macaroon -> BS.ByteString
-serialize m = B8.filter (/= '=') . B64.encode $ packets
-  where
-    packets = BS.concat [ putPacket "location" (location m)
-                        , putPacket "identifier" (identifier m)
-                        , caveatPackets
-                        , putPacket "signature" (signature m)
-                        ]
-    caveatPackets = BS.concat $ map (cavPacket (location m)) (caveats m)
-    cavPacket loc c | cl c == loc && vid c == BS.empty = putPacket "cid" (cid c)
-                    | otherwise = BS.concat [ putPacket "cid" (cid c)
-                                            , putPacket "vid" (vid c)
-                                            , putPacket "cl" (cl c)
-                                            ]
-    putPacket key dat = BS.concat [
-        B8.map toLower . hex . encode $ (fromIntegral size :: Word16)
-        , key
-        , " "
-        , dat
-        , "\n"
-        ]
-      where
-        size = 4 + 2 + BS.length key + BS.length dat
-
-
-
 
 -- | Add a first party Caveat to a Macaroon, with its identifier
 addFirstPartyCaveat :: Key -> Macaroon -> Macaroon
