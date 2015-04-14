@@ -26,8 +26,9 @@ Implementations
 
 - [C](https://github.com/rescrv/libmacaroons)
 - [Java](https://github.com/nitram509/jmacaroons)
-- [Python](https://github.com/ecordell/pymacaroons)
 - [Node.js](https://github.com/nitram509/macaroons.js)
+- [Python](https://github.com/ecordell/pymacaroons)
+- [Rust](https://github.com/cryptosphere/rust-macaroons.git)
 
 TODO
 ====
@@ -37,3 +38,4 @@ TODO
 - JSON serialization
 - Quickcheck tests
 - Error handling
+- FFI's for testing and benchmarking purposes
