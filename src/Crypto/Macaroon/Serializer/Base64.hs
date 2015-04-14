@@ -16,22 +16,22 @@ module Crypto.Macaroon.Serializer.Base64 (
       , deserialize
       ) where
 
-import Control.Applicative
-import Control.Monad
-import qualified Data.ByteString            as BS
-import qualified Data.ByteString.Base64.URL as B64
-import qualified Data.ByteString.Char8      as B8
-import Data.Attoparsec.ByteString
+import           Control.Applicative
+import           Control.Monad
+import           Crypto.Macaroon.Internal
+import           Data.Attoparsec.ByteString
 import qualified Data.Attoparsec.ByteString.Char8 as A8
 import           Data.Bits
+import qualified Data.ByteString                  as BS
+import qualified Data.ByteString.Base64.URL       as B64
+import qualified Data.ByteString.Char8            as B8
 import           Data.Char
 import           Data.Hex
 import           Data.Int
 import           Data.List
 import           Data.Maybe
-import           Data.Word
 import           Data.Serialize
-import Crypto.Macaroon.Internal
+import           Data.Word
 
 
 -- | Serialize a macaroon in an URL-safe Base64 encoding
