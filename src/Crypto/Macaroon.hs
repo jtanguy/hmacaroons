@@ -41,7 +41,7 @@ module Crypto.Macaroon (
     , create
     , inspect
     , addFirstPartyCaveat
-    , addThirdPartyCaveat
+    -- , addThirdPartyCaveat
     ) where
 
 import           Crypto.Cipher.AES

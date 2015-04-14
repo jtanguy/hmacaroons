@@ -24,7 +24,7 @@ tests :: TestTree
 tests = testGroup "Crypto.Macaroon" [ basic
                                     , minted
                                     , minted2
-                                    , minted3
+                                    -- , minted3
                                     ]
 
 
@@ -93,20 +93,20 @@ mint2Trimmed = testCase "Serialization" $
 mint2Des = testCase "Deserialization" $
     Right m3 @=? (deserialize . serialize) m3
 
-m4 :: Macaroon
-m4 = addThirdPartyCaveat caveat_key caveat_id caveat_loc n
-  where
-    n = addFirstPartyCaveat "account = 3735928559" $ create sec key loc
-    key = B8.pack "we used our other secret key"
-    loc = B8.pack "http://mybank/"
-    sec = B8.pack "this is a different super-secret key; never use the same secret twice"
-    caveat_key = B8.pack "4; guaranteed random by a fair toss of the dice"
-    caveat_id = B8.pack "this was how we remind auth of key/pred"
-    caveat_loc = B8.pack "http://auth.mybank/"
+-- m4 :: Macaroon
+-- m4 = addThirdPartyCaveat caveat_key caveat_id caveat_loc n
+--   where
+--     n = addFirstPartyCaveat "account = 3735928559" $ create sec key loc
+--     key = B8.pack "we used our other secret key"
+--     loc = B8.pack "http://mybank/"
+--     sec = B8.pack "this is a different super-secret key; never use the same secret twice"
+--     caveat_key = B8.pack "4; guaranteed random by a fair toss of the dice"
+--     caveat_id = B8.pack "this was how we remind auth of key/pred"
+--     caveat_loc = B8.pack "http://auth.mybank/"
 
-minted3 :: TestTree
-minted3 = testGroup "Macaroon with first and third party caveats" [ mint3sig ]
+-- minted3 :: TestTree
+-- minted3 = testGroup "Macaroon with first and third party caveats" [ mint3sig ]
 
 
-mint3sig = testCase "Signature" $
-    "6B99EDB2EC6D7A4382071D7D41A0BF7DFA27D87D2F9FEA86E330D7850FFDA2B2" @=? (hex . signature) m4
+-- mint3sig = testCase "Signature" $
+--     "6B99EDB2EC6D7A4382071D7D41A0BF7DFA27D87D2F9FEA86E330D7850FFDA2B2" @=? (hex . signature) m4

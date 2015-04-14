@@ -33,6 +33,7 @@ Implementations
 TODO
 ====
 
+- Third party caveats
 - Verify Macaroons
 - Discharge Macaroons
 - JSON serialization
