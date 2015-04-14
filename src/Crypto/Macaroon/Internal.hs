@@ -42,7 +42,15 @@ data Macaroon = MkMacaroon { location   :: Location
                            -- ^ List of caveats
                            , signature  :: Sig
                            -- ^ Macaroon HMAC signature
-                           } deriving (Eq)
+                           }
+
+instance Eq Macaroon where
+    (MkMacaroon l1 i1 c1 s1) == (MkMacaroon l2 i2 c2 s2) =
+        (l1 `constEqBytes` l2) &&!
+        (i1 `constEqBytes` i2) &&!
+        (c1 == c2) &&!
+        (s1 `constEqBytes` s2)
+
 
 -- | show instance conforming to the @inspect@ "specification"
 instance Show Macaroon where
@@ -66,8 +74,13 @@ data Caveat = MkCaveat { cid :: Key
                        -- ^ Caveat verification key identifier
                        , cl  :: Location
                        -- ^ Caveat target location
+                       }
 
-                       } deriving (Eq)
+instance Eq Caveat where
+    (MkCaveat c1 v1 l1) == (MkCaveat c2 v2 l2) =
+        (c1 `constEqBytes` c2) &&!
+        (v1 `constEqBytes` v2) &&!
+        (l1 `constEqBytes` l2)
 
 -- | show instance conforming to the @inspect@ "specification"
 instance Show Caveat where
@@ -94,4 +107,11 @@ addCaveat loc cid vid m = m { caveats = cavs ++ [cav'], signature = sig}
     cavs = caveats m
     cav' = MkCaveat cid vid loc
     sig = toBytes (hmac (signature m) (BS.append vid cid) :: HMAC SHA256)
+
+-- | Utility non-short circuiting '&&' function.
+(&&!) :: Bool -> Bool -> Bool
+True  &&! True  = True
+True  &&! False = False
+False &&! True  = False
+False &&! False = False
 
