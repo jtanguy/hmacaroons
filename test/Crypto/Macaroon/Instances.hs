@@ -1,0 +1,54 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-|
+Copyright   : (c) 2015 Julien Tanguy
+License     : BSD3
+
+Maintainer  : julien.tanguy@jhome.fr
+
+
+This test suite is based on the pymacaroons test suite:
+<https://github.com/ecordell/pymacaroons>
+-}
+module Crypto.Macaroon.Instances where
+
+import Control.Monad
+import           Data.Byteable
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as B8
+import           Data.Hex
+import           Data.List
+import           Test.Tasty
+import           Test.Tasty.HUnit
+import           Test.Tasty.QuickCheck
+
+import           Crypto.Macaroon
+
+newtype Url = Url { unUrl :: BS.ByteString } deriving (Show)
+
+instance Arbitrary Url where
+    arbitrary = do
+        protocol <- elements ["http://"]
+        name <-  fmap (intercalate ".") <$> listOf1 . listOf1 $ elements ['a'..'z']
+        domain <- elements [".com",".net"]
+        return . Url . B8.pack $ (protocol ++ name ++ domain)
+
+newtype Secret = Secret { unSecret :: BS.ByteString } deriving (Show)
+
+instance Arbitrary Secret where
+    arbitrary = Secret . B8.pack <$> scale (*3) arbitrary
+
+newtype Identifier = Identifier { unIdent :: BS.ByteString } deriving (Show)
+
+instance Arbitrary Identifier where
+    arbitrary = Identifier . B8.pack <$>(scale (*3) . listOf1 . elements $ ['a'..'z'])
+
+data SimpleMac = SimpleMac { secret :: BS.ByteString, macaroon :: Macaroon } deriving Show
+
+instance Arbitrary SimpleMac where
+    arbitrary = do
+        secret <- unSecret <$> arbitrary
+        location <- unUrl <$> arbitrary
+        ident <- unIdent <$> arbitrary
+        return $ SimpleMac secret (create secret ident location)
+
+
