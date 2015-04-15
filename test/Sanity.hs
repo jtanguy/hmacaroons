@@ -1,4 +1,5 @@
 {-#LANGUAGE OverloadedStrings#-}
+module Sanity where
 
 import           Crypto.Hash
 import Data.ByteString (ByteString)
@@ -12,16 +13,8 @@ import Test.Tasty.HUnit
 import qualified Crypto.Macaroon.Tests
 import qualified Crypto.Macaroon.Serializer.Base64.Tests
 
-main = defaultMain tests
-
 tests :: TestTree
-tests = testGroup "Tests" [ sanityCheck
-                          , Crypto.Macaroon.Tests.tests
-                          , Crypto.Macaroon.Serializer.Base64.Tests.tests
-                          ]
-
-sanityCheck :: TestTree
-sanityCheck = testGroup "Python HMAC Sanity check" [ checkKey
+tests = testGroup "Python HMAC Sanity check" [ checkKey
     , checkMac1
     , checkMac2
     , checkMac3
@@ -39,16 +32,16 @@ key :: ByteString
 key = B.take 32 secret
 
 mac1 :: ByteString
-mac1 = toBytes $ (hmac key public :: HMAC SHA256)
+mac1 = toBytes (hmac key public :: HMAC SHA256)
 
 mac2 :: ByteString
-mac2 = toBytes $ (hmac mac1 "account = 3735928559" :: HMAC SHA256)
+mac2 = toBytes (hmac mac1 "account = 3735928559" :: HMAC SHA256)
 
 mac3 :: ByteString
-mac3 = toBytes $ (hmac mac2 "time < 2015-01-01T00:00" :: HMAC SHA256)
+mac3 = toBytes (hmac mac2 "time < 2015-01-01T00:00" :: HMAC SHA256)
 
 mac4 :: ByteString
-mac4 = toBytes $ (hmac mac3 "email = alice@example.org" :: HMAC SHA256)
+mac4 = toBytes (hmac mac3 "email = alice@example.org" :: HMAC SHA256)
 
 
 checkKey = testCase "Truncated key" $ 
