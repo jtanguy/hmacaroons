@@ -1,4 +1,4 @@
-Macaroons: Pure haskell implementation of macaroons
+Macaroons: Pure haskell implementation of macaroons [![Build Status](https://travis-ci.org/jtanguy/hmacaroons.svg?branch=master)](https://travis-ci.org/jtanguy/hmacaroons)
 ===================================================
 
 Macaroons is a pure haskell implementation of macaroons. It aims to provide
