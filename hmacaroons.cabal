@@ -4,48 +4,36 @@ synopsis:            Haskell implementation of macaroons
 description:
   = Macaroons: Pure haskell implementation of macaroons
   #macaroons-pure-haskell-implementation-of-macaroons#
-
+  .
   Macaroons is a pure haskell implementation of macaroons. It aims to
   provide compatibility at a serialized level with the
   <https://github.com/rescrv/libmacaroons reference implementation> and
   the <https://github.com/ecordell/pymacaroons python implementation>
-
+  .
   __WARNING: This library has not been audited by security experts.__
-  __There is no error handling at the moment, everyhting is silently
-  accepted__
-
+  __There is no error handling at the moment, everyhting is silently accepted__
+  .
   It is developed in the purpose of exploration purposes, and would need
   much more attention if it were to be used in production.
-
+  .
   = References
   #references#
-
+  .
   == Papers and articles
   #papers-and-articles#
-
+  .
   -   <http://research.google.com/pubs/pub41892.html Google paper on macaroons>
   -   <https://air.mozilla.org/macaroons-cookies-with-contextual-caveats-for-decentralized-authorization-in-the-cloud/ Macaroons at Mozilla>
   -   <http://hackingdistributed.com/2014/11/23/macaroons-in-hyperdex/ Time for better security in NoSQL>
-
+  .
   == Implementations
   #implementations#
-
+  .
   -   <https://github.com/rescrv/libmacaroons C>
   -   <https://github.com/nitram509/jmacaroons Java>
   -   <https://github.com/nitram509/macaroons.js Node.js>
   -   <https://github.com/ecordell/pymacaroons Python>
   -   <https://github.com/cryptosphere/rust-macaroons.git Rust>
-
-  = TODO
-  #todo#
-
-  -   Third party caveats
-  -   Verify Macaroons
-  -   Discharge Macaroons
-  -   JSON serialization
-  -   Quickcheck tests
-  -   Error handling
-  -   FFI\'s for testing and benchmarking purposes
 license:             BSD3
 license-file:        LICENSE
 author:              Julien Tanguy
@@ -56,6 +44,7 @@ category:            Data
 build-type:          Simple
 extra-source-files:  README.md
                      CONTRIBUTING.md
+                     CHANGELOG
 cabal-version:       >=1.10
 
 source-repository head
