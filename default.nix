@@ -1,6 +1,6 @@
 { mkDerivation, attoparsec, base, base64-bytestring, byteable
-, bytestring, cereal, cipher-aes, cryptohash, deepseq, hex, stdenv
-, tasty, tasty-hunit, tasty-quickcheck
+, bytestring, cereal, cipher-aes, cryptohash, deepseq, hex
+, QuickCheck, stdenv, tasty, tasty-hunit, tasty-quickcheck
 }:
 mkDerivation {
   pname = "hmacaroons";
@@ -12,7 +12,7 @@ mkDerivation {
   ];
   testDepends = [
     attoparsec base base64-bytestring byteable bytestring cereal
-    cryptohash hex tasty tasty-hunit tasty-quickcheck
+    cryptohash hex QuickCheck tasty tasty-hunit tasty-quickcheck
   ];
   homepage = "https://github.com/jtanguy/hmacaroons";
   description = "Haskell implementation of macaroons";
