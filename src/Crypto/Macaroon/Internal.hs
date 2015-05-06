@@ -44,6 +44,7 @@ data Macaroon = MkMacaroon { location   :: Location
                            -- ^ Macaroon HMAC signature
                            }
 
+-- | Constant-time Eq instance
 instance Eq Macaroon where
     (MkMacaroon l1 i1 c1 s1) == (MkMacaroon l2 i2 c2 s2) =
         (l1 `constEqBytes` l2) &&!
@@ -76,6 +77,7 @@ data Caveat = MkCaveat { cid :: Key
                        -- ^ Caveat target location
                        }
 
+-- | Constant-time Eq instance
 instance Eq Caveat where
     (MkCaveat c1 v1 l1) == (MkCaveat c2 v2 l2) =
         (c1 `constEqBytes` c2) &&!

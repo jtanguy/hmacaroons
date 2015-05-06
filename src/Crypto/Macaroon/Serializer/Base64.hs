@@ -55,6 +55,7 @@ packetize key dat = do
     putByteString dat
     putByteString "\n"
 
+-- | Deserialize a macaroon from a base64url-encoded ByteString
 deserialize :: BS.ByteString -> Either String Macaroon
 deserialize = parseOnly macaroon . B64.decodeLenient
 
