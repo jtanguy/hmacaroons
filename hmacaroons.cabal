@@ -1,23 +1,73 @@
 name:                hmacaroons
 version:             0.1.0.0
 synopsis:            Haskell implementation of macaroons
--- description:         
+description:
+  = Macaroons: Pure haskell implementation of macaroons
+  #macaroons-pure-haskell-implementation-of-macaroons#
+
+  Macaroons is a pure haskell implementation of macaroons. It aims to
+  provide compatibility at a serialized level with the
+  <https://github.com/rescrv/libmacaroons reference implementation> and
+  the <https://github.com/ecordell/pymacaroons python implementation>
+
+  __WARNING: This library has not been audited by security experts.__
+  __There is no error handling at the moment, everyhting is silently
+  accepted__
+
+  It is developed in the purpose of exploration purposes, and would need
+  much more attention if it were to be used in production.
+
+  = References
+  #references#
+
+  == Papers and articles
+  #papers-and-articles#
+
+  -   <http://research.google.com/pubs/pub41892.html Google paper on macaroons>
+  -   <https://air.mozilla.org/macaroons-cookies-with-contextual-caveats-for-decentralized-authorization-in-the-cloud/ Macaroons at Mozilla>
+  -   <http://hackingdistributed.com/2014/11/23/macaroons-in-hyperdex/ Time for better security in NoSQL>
+
+  == Implementations
+  #implementations#
+
+  -   <https://github.com/rescrv/libmacaroons C>
+  -   <https://github.com/nitram509/jmacaroons Java>
+  -   <https://github.com/nitram509/macaroons.js Node.js>
+  -   <https://github.com/ecordell/pymacaroons Python>
+  -   <https://github.com/cryptosphere/rust-macaroons.git Rust>
+
+  = TODO
+  #todo#
+
+  -   Third party caveats
+  -   Verify Macaroons
+  -   Discharge Macaroons
+  -   JSON serialization
+  -   Quickcheck tests
+  -   Error handling
+  -   FFI\'s for testing and benchmarking purposes
 license:             BSD3
 license-file:        LICENSE
 author:              Julien Tanguy
 maintainer:          julien.tanguy@jhome.fr
--- copyright:           
+homepage:            https://github.com/jtanguy/hmacaroons
+bug-reports:         https://github.com/jtanguy/hmacaroons/issues
 category:            Data
 build-type:          Simple
 extra-source-files:  README.md
+                     CONTRIBUTING.md
 cabal-version:       >=1.10
+
+source-repository head
+    type:       git
+    branch:     master
+    location:   https://github.com/jtanguy/hmacaroons
 
 library
   exposed-modules:     Crypto.Macaroon,
                        Crypto.Macaroon.Binder
                        Crypto.Macaroon.Serializer.Base64
   other-modules:       Crypto.Macaroon.Internal
-  -- other-extensions:    
   build-depends:  base >=4 && < 5,
                   attoparsec >=0.12,
                   bytestring >=0.10,
@@ -41,14 +91,14 @@ benchmark bench
                   attoparsec >=0.12,
                   bytestring >=0.10,
                   base64-bytestring >= 1.0,
+                  byteable >= 0.1 && <0.2,
                   cereal >= 0.4,
                   cryptohash >=0.11 && <0.12,
-                  cipher-aes >=0.2 && <0.3,
-                  byteable >= 0.1 && <0.2,
+--                  cipher-aes >=0.2 && <0.3,
                   hex >= 0.1,
                   deepseq >= 1.1,
                   criterion >= 1.1
- 
+
 test-suite test
   default-language: Haskell2010
   type: exitcode-stdio-1.0

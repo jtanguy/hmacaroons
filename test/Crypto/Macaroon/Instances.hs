@@ -23,6 +23,12 @@ import           Test.Tasty.QuickCheck
 
 import           Crypto.Macaroon
 
+
+-- | Adjust the size parameter, by transforming it with the given
+-- function.
+scale :: (Int -> Int) -> Gen a -> Gen a
+scale f g = sized (\n -> resize (f n) g)
+
 newtype Url = Url { unUrl :: BS.ByteString } deriving (Show)
 
 instance Arbitrary Url where
