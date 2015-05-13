@@ -24,7 +24,6 @@ import Crypto.Macaroon.Instances
 
 tests :: TestTree
 tests = testGroup "Crypto.Macaroon.Serializer.Base64" [ basic
-                                                      , basicQC
                                                       , minted
                                                       , minted2
                                                       -- , minted3
@@ -43,6 +42,7 @@ m = create secret key loc
 basic :: TestTree
 basic = testGroup "Basic macaroon" [ basicSerialize
                                    , basicDeserialize
+                                   , basicQC
                                    ]
 
 basicSerialize = testCase "Serialization" $
