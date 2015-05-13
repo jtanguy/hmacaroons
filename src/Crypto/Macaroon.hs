@@ -44,7 +44,7 @@ module Crypto.Macaroon (
     -- , addThirdPartyCaveat
     ) where
 
-import           Crypto.Cipher.AES
+-- import           Crypto.Cipher.AES
 import           Crypto.Hash
 import           Data.Byteable
 import qualified Data.ByteString            as BS
@@ -81,13 +81,13 @@ addFirstPartyCaveat ident m = addCaveat (location m) ident BS.empty m
 
 -- |Add a third party Caveat to a Macaroon, using its location, identifier and
 -- verification key
-addThirdPartyCaveat :: Key
-                    -> Key
-                    -> Location
-                    -> Macaroon
-                    -> Macaroon
-addThirdPartyCaveat key cid loc m = addCaveat loc cid vid m
-  where
-    vid = encryptECB (initAES (signature m)) key
+-- addThirdPartyCaveat :: Key
+--                     -> Key
+--                     -> Location
+--                     -> Macaroon
+--                     -> Macaroon
+-- addThirdPartyCaveat key cid loc m = addCaveat loc cid vid m
+--   where
+--     vid = encryptECB (initAES (signature m)) key
 
 

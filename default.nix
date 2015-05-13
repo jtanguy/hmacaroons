@@ -1,6 +1,6 @@
 { mkDerivation, attoparsec, base, base64-bytestring, byteable
-, bytestring, cereal, cipher-aes, cryptohash, deepseq, hex
-, QuickCheck, stdenv, tasty, tasty-hunit, tasty-quickcheck
+, bytestring, cereal, cryptohash, deepseq, hex, QuickCheck, stdenv
+, tasty, tasty-hunit, tasty-quickcheck
 }:
 mkDerivation {
   pname = "hmacaroons";
@@ -8,7 +8,7 @@ mkDerivation {
   src = ./.;
   buildDepends = [
     attoparsec base base64-bytestring byteable bytestring cereal
-    cipher-aes cryptohash deepseq hex
+    cryptohash deepseq hex
   ];
   testDepends = [
     attoparsec base base64-bytestring byteable bytestring cereal

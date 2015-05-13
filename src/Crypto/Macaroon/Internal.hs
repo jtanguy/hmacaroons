@@ -15,7 +15,6 @@ module Crypto.Macaroon.Internal where
 
 
 import           Control.DeepSeq
-import           Crypto.Cipher.AES
 import           Crypto.Hash
 import           Data.Byteable
 import qualified Data.ByteString        as BS
