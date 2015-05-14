@@ -5,3 +5,4 @@
     * Macaroon creation
     * Base64 serialization
     * First party caveats
+    - Basic signature verification

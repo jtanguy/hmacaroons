@@ -44,7 +44,7 @@ category:            Data
 build-type:          Simple
 extra-source-files:  README.md
                      CONTRIBUTING.md
-                     CHANGELOG
+                     CHANGELOG.md
 cabal-version:       >=1.10
 
 source-repository head
