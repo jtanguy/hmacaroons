@@ -15,6 +15,7 @@ module Crypto.Macaroon.Verifier.Tests where
 import qualified Data.ByteString.Char8 as B8
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
 
 import           Crypto.Macaroon
 import           Crypto.Macaroon.Verifier
@@ -25,6 +26,9 @@ tests :: TestTree
 tests = testGroup "Crypto.Macaroon.Verifier" [ sigs
                                              ]
 
+{-
+ - Test fixtures
+ -}
 sec = B8.pack "this is our super secret key; only we should know it"
 
 m :: Macaroon
@@ -39,21 +43,25 @@ m2 = addFirstPartyCaveat "test = caveat" m
 m3 :: Macaroon
 m3 = addFirstPartyCaveat "test = acaveat" m
 
+{-
+ - Tests
+ -}
 sigs = testGroup "Signatures" [ basic
-                              , minted
+                              , one
+                              , two
                               ]
 
-basic = testCase "Basic Macaroon Signature" $
-    Success @=? verifySig sec m
+basic = testGroup "Basic Macaroon" [ none , sigQC ]
 
+none = testCase "No caveat" $
+    VSuccess @=? verifySig sec m
 
-minted :: TestTree
-minted = testGroup "Macaroon with first party caveats" [ one
-                                                       , two
-                                                       ]
-one = testCase "One caveat" $
-    Success @=? verifySig sec m2
+sigQC = testProperty "Random" $
+    \sm -> verifySig (secret sm) (macaroon sm) == VSuccess
 
-two = testCase "Two caveats" $
-    Success @=? verifySig sec m3
+one = testCase "Macaroon with one caveat" $
+    VSuccess @=? verifySig sec m2
+
+two = testCase "Macaroon with two caveats" $
+    VSuccess @=? verifySig sec m3
 

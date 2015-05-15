@@ -30,7 +30,7 @@ tests = testGroup "Crypto.Macaroon.Serializer.Base64" [ basic
                                                       ]
 
 basicQC = testProperty "Reversibility" $
-    forAll (macaroon <$> arbitrary) (\m -> deserialize (serialize m) == Right m)
+    \sm -> deserialize (serialize (macaroon sm)) == Right (macaroon sm)
 
 m :: Macaroon
 m = create secret key loc

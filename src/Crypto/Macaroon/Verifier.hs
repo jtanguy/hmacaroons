@@ -24,10 +24,10 @@ import           Crypto.Macaroon.Internal
 
 
 -- | Opaque datatype for now. Might need more explicit errors
-data Result = Success | Failure deriving (Show,Eq)
+data VResult = VSuccess | VFailure deriving (Show,Eq)
 
-verifySig :: Key -> Macaroon -> Result
-verifySig k m = bool Failure Success $
+verifySig :: Key -> Macaroon -> VResult
+verifySig k m = bool VFailure VSuccess $
       signature m == foldl' hash (toBytes (hmac derivedKey (identifier m) :: HMAC SHA256)) (caveats m)
   where
     hash s c = toBytes (hmac s (vid c `BS.append` cid c) :: HMAC SHA256)
