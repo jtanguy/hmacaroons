@@ -24,6 +24,7 @@ import Crypto.Macaroon.Instances
 
 tests :: TestTree
 tests = testGroup "Crypto.Macaroon.Verifier" [ sigs
+                                             , exactCavs
                                              ]
 
 {-
@@ -41,7 +42,14 @@ m2 :: Macaroon
 m2 = addFirstPartyCaveat "test = caveat" m
 
 m3 :: Macaroon
-m3 = addFirstPartyCaveat "test = acaveat" m
+m3 = addFirstPartyCaveat "value = 42" m2
+
+exVerifiers = [ verifyExact "test" "caveat" (many' letter_ascii)
+              , verifyExact "value" 42 decimal
+              ]
+exVerifiers' = [ verifyExact "test" "caveat" (many' letter_ascii)
+               , verifyExact "value" 43 decimal
+               ]
 
 {-
  - Tests
@@ -54,14 +62,26 @@ sigs = testGroup "Signatures" [ basic
 basic = testGroup "Basic Macaroon" [ none , sigQC ]
 
 none = testCase "No caveat" $
-    VSuccess @=? verifySig sec m
+    Ok @=? verifySig sec m
 
 sigQC = testProperty "Random" $
-    \sm -> verifySig (secret sm) (macaroon sm) == VSuccess
+    \sm -> verifySig (secret sm) (macaroon sm) == Ok
 
 one = testCase "Macaroon with one caveat" $
-    VSuccess @=? verifySig sec m2
+    Ok @=? verifySig sec m2
 
 two = testCase "Macaroon with two caveats" $
-    VSuccess @=? verifySig sec m3
+    Ok @=? verifySig sec m3
 
+exactCavs = testGroup "Exact Caveats" [ zero', one', two' , one'', two'']
+
+zero' = testCase "Zero caveat win" $
+    Ok @=? verifyCavs exVerifiers m
+one' = testCase "One caveat win" $
+    Ok @=? verifyCavs exVerifiers m2
+one'' = testCase "Ignoring non-relevant" $
+    Ok @=? verifyCavs exVerifiers' m2
+two' = testCase "Two caveat win" $
+    Ok @=? verifyCavs exVerifiers m3
+two'' = testCase "Two caveat fail" $
+    Failed @=? verifyCavs exVerifiers' m3
