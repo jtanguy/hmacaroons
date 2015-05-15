@@ -48,6 +48,16 @@ newtype Identifier = Identifier { unIdent :: BS.ByteString } deriving (Show)
 instance Arbitrary Identifier where
     arbitrary = Identifier . B8.pack <$>(scale (*3) . listOf1 . elements $ ['a'..'z'])
 
+newtype EquationLike = EquationLike { unEqlike :: BS.ByteString } deriving (Show)
+
+instance Arbitrary EquationLike where
+    arbitrary = do
+        keylen <- choose (3,8)
+        key <- B8.pack <$> vectorOf keylen (elements ['a'..'z'])
+        val <- B8.pack <$> (scale (*3) . listOf1 . elements $ ['a'..'z'])
+        return $ EquationLike (BS.concat [ key, " = ", val])
+
+
 data SimpleMac = SimpleMac { secret :: BS.ByteString, macaroon :: Macaroon } deriving Show
 
 instance Arbitrary SimpleMac where
@@ -55,6 +65,8 @@ instance Arbitrary SimpleMac where
         secret <- unSecret <$> arbitrary
         location <- unUrl <$> arbitrary
         ident <- unIdent <$> arbitrary
-        return $ SimpleMac secret (create secret ident location)
+        fpcavs <- listOf arbitrary
+        let mac = foldl (flip addFirstPartyCaveat) (create secret ident location) (map unEqlike fpcavs)
+        return $ SimpleMac secret mac
 
 
