@@ -58,7 +58,7 @@ instance Show Macaroon where
     show (MkMacaroon l i c s) = intercalate "\n" [
                       "location " ++ B8.unpack l
                     , "identifier " ++ B8.unpack i
-                    , concatMap show c
+                    , intercalate "\n" (map show c)
                     , "signature " ++ B8.unpack (hex s)
                     ]
 
