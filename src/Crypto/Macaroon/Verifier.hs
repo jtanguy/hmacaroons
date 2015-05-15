@@ -16,6 +16,7 @@ module Crypto.Macaroon.Verifier (
     Verified(..)
   , verifySig
   , verifyExact
+  , verifyFun
   , verifyCavs
   -- , module Data.Attoparsec.ByteString
   , module Data.Attoparsec.ByteString.Char8
@@ -55,10 +56,13 @@ verifySig k m = bool Failed Ok $
 verifyCavs :: [Caveat -> Maybe Verified] -> Macaroon -> Verified
 verifyCavs verifiers m = mconcat $ map (\c -> mconcat . catMaybes $ map ($ c) verifiers) (caveats m)
 
-verifyExact :: (Show a, Eq a) => Key -> a -> Parser a -> Caveat -> Maybe Verified
-verifyExact key expected parser cav = if key `BS.isPrefixOf` cid cav then
+verifyExact :: (Eq a) => Key -> a -> Parser a -> Caveat -> Maybe Verified
+verifyExact k expected = verifyFun k (expected ==)
+
+verifyFun :: Key -> (a -> Bool) -> Parser a -> Caveat -> Maybe Verified
+verifyFun key f parser cav = if key `BS.isPrefixOf` cid cav then
         case parseOnly kvparser (cid cav) of
-          Right v -> verify <$> Just v
+          Right v -> (bool Failed Ok . f) <$> Just v
           Left _ -> Just Failed
         else Nothing
   where
@@ -67,7 +71,4 @@ verifyExact key expected parser cav = if key `BS.isPrefixOf` cid cav then
       skipSpace
       string "="
       skipSpace
-      parser
-
-      -- *> skipSpace *> string "=" *> skipSpace *> parser <* endOfInput
-    verify a = bool Failed Ok (a == expected)
+      parser <* endOfInput

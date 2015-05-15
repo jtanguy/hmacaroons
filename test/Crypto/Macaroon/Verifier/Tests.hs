@@ -12,6 +12,7 @@ This test suite is based on the pymacaroons test suite:
 module Crypto.Macaroon.Verifier.Tests where
 
 
+import Data.List
 import qualified Data.ByteString.Char8 as B8
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -50,6 +51,9 @@ exVerifiers = [ verifyExact "test" "caveat" (many' letter_ascii)
 exVerifiers' = [ verifyExact "test" "caveat" (many' letter_ascii)
                , verifyExact "value" 43 decimal
                ]
+funVerifiers = [ verifyFun "test" ("cav" `isPrefixOf`) (many' letter_ascii)
+               , verifyFun "value" (<= 43) decimal
+               ]
 
 {-
  - Tests
@@ -73,15 +77,17 @@ one = testCase "Macaroon with one caveat" $
 two = testCase "Macaroon with two caveats" $
     Ok @=? verifySig sec m3
 
-exactCavs = testGroup "Exact Caveats" [ zero', one', two' , one'', two'']
+exactCavs = testGroup "Exact Caveats" [
+    testGroup "Ignoring non-relevant" [
+        testCase "Zero caveat" $ Ok @=? verifyCavs exVerifiers m
+      , testCase "One caveat" $ Ok @=? verifyCavs exVerifiers' m2
+      ]
+  , testCase "One caveat win" $ Ok @=? verifyCavs exVerifiers m2
+  , testCase "Two caveat win" $ Ok @=? verifyCavs exVerifiers m3
+  , testCase "Two caveat fail" $ Failed @=? verifyCavs exVerifiers' m3
+  ]
 
-zero' = testCase "Zero caveat win" $
-    Ok @=? verifyCavs exVerifiers m
-one' = testCase "One caveat win" $
-    Ok @=? verifyCavs exVerifiers m2
-one'' = testCase "Ignoring non-relevant" $
-    Ok @=? verifyCavs exVerifiers' m2
-two' = testCase "Two caveat win" $
-    Ok @=? verifyCavs exVerifiers m3
-two'' = testCase "Two caveat fail" $
-    Failed @=? verifyCavs exVerifiers' m3
+funCavs = testGroup "Function Caveats" [
+    testCase "One caveat win" $ Ok @=? verifyCavs funVerifiers m2
+  , testCase "Two caveat win" $ Ok @=? verifyCavs funVerifiers m3
+  ]
