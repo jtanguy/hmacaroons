@@ -61,7 +61,7 @@ allvs = [exTC, exTZ, exV42, exV43, funTCPre, funTV43lte]
 sigs = testProperty "Signatures" $ \sm -> verifySig (secret sm) (macaroon sm) == Ok
 
 firstParty = testGroup "First party caveats" [
-    testGroup "Pure verifiers" [ 
+    testGroup "Pure verifiers" [
         testProperty "Zero caveat" $
                 forAll (sublistOf allvs) (\vs -> Ok == verifyCavs vs m)
       , testProperty "One caveat" $
@@ -75,6 +75,22 @@ firstParty = testGroup "First party caveats" [
                 any (`elem` vs) [exTC,funTCPre] .&&.  (exTZ `notElem` vs) .&&.
                 any (`elem` vs) [exV42,funTV43lte] .&&.  (exV43 `notElem` vs)
             , Failed === verifyCavs vs m3
+            ])
+      ]
+    , testGroup "Pure verifiers with sig" [
+        testProperty "Zero caveat" $
+                forAll (sublistOf allvs) (\vs -> Ok == verifyMacaroon sec vs m)
+      , testProperty "One caveat" $
+          forAll (sublistOf allvs) (\vs -> disjoin [
+              Ok == verifyMacaroon sec vs m2 .&&. any (`elem` vs) [exTC,funTCPre] .&&. (exTZ `notElem` vs)
+            , Failed === verifyMacaroon sec vs m2
+            ])
+      , testProperty "Two Exact" $
+          forAll (sublistOf allvs) (\vs -> disjoin [
+              Ok == verifyMacaroon sec vs m3 .&&.
+                any (`elem` vs) [exTC,funTCPre] .&&.  (exTZ `notElem` vs) .&&.
+                any (`elem` vs) [exV42,funTV43lte] .&&.  (exV43 `notElem` vs)
+            , Failed === verifyMacaroon sec vs m3
             ])
       ]
     ]

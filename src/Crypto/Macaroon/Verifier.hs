@@ -14,14 +14,14 @@ Portability : portable
 -}
 module Crypto.Macaroon.Verifier (
     Verified(..)
-  , CaveatVerifier(..)
+  , CaveatVerifier
   , (<???>)
+  , verifyMacaroon
   , verifySig
   , verifyExact
   , verifyFun
-  , verifyCavs
-  -- , module Data.Attoparsec.ByteString
   , module Data.Attoparsec.ByteString.Char8
+  , verifyCavs
 ) where
 
 
@@ -65,6 +65,10 @@ verifySig k m = bool Failed Ok $
   where
     hash s c = toBytes (hmac s (vid c `BS.append` cid c) :: HMAC SHA256)
     derivedKey = toBytes (hmac "macaroons-key-generator" k :: HMAC SHA256)
+
+verifyMacaroon :: Key -> [CaveatVerifier] -> Macaroon -> Verified
+verifyMacaroon secret verifiers m = verifySig secret m `mappend` verifyCavs verifiers m
+
 
 verifyCavs :: [CaveatVerifier] -> Macaroon -> Verified
 verifyCavs verifiers m = foldMap (\c -> fromMaybe Failed $ foldMap (($ c) . vFun) verifiers) (caveats m)
