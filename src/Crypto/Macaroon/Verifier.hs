@@ -14,6 +14,8 @@ Portability : portable
 -}
 module Crypto.Macaroon.Verifier (
     Verified(..)
+  , CaveatVerifier(..)
+  , (<???>)
   , verifySig
   , verifyExact
   , verifyFun
@@ -28,7 +30,9 @@ import           Data.Bool
 import qualified Data.ByteString            as BS
 import           Data.Byteable
 import           Data.Foldable
+import           Data.Function
 import           Data.Maybe
+import           Data.Traversable
 import Data.Attoparsec.ByteString
 import Data.Attoparsec.ByteString.Char8
 
@@ -44,7 +48,16 @@ instance Monoid Verified where
   mappend _ _ = Failed
 
 
-type CaveatVerifier = Caveat -> Maybe Verified
+data CaveatVerifier = CV { vFun :: Caveat -> Maybe Verified , helpText :: String}
+
+instance Eq CaveatVerifier where
+  (==) = (==) `on` helpText
+
+instance Show CaveatVerifier where
+    show = helpText
+
+(<???>) :: (Caveat -> Maybe Verified) -> String -> CaveatVerifier
+f <???> t = CV f t
 
 verifySig :: Key -> Macaroon -> Verified
 verifySig k m = bool Failed Ok $
@@ -53,8 +66,8 @@ verifySig k m = bool Failed Ok $
     hash s c = toBytes (hmac s (vid c `BS.append` cid c) :: HMAC SHA256)
     derivedKey = toBytes (hmac "macaroons-key-generator" k :: HMAC SHA256)
 
-verifyCavs :: [Caveat -> Maybe Verified] -> Macaroon -> Verified
-verifyCavs verifiers m = mconcat $ map (\c -> mconcat . catMaybes $ map ($ c) verifiers) (caveats m)
+verifyCavs :: [CaveatVerifier] -> Macaroon -> Verified
+verifyCavs verifiers m = foldMap (\c -> fromMaybe Failed $ foldMap (($ c) . vFun) verifiers) (caveats m)
 
 verifyExact :: (Eq a) => Key -> a -> Parser a -> Caveat -> Maybe Verified
 verifyExact k expected = verifyFun k (expected ==)

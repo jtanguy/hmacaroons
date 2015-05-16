@@ -26,8 +26,15 @@ import           Crypto.Macaroon
 
 -- | Adjust the size parameter, by transforming it with the given
 -- function.
+-- Copied over from QuickCheck 2.8
 scale :: (Int -> Int) -> Gen a -> Gen a
 scale f g = sized (\n -> resize (f n) g)
+
+
+-- | Generates a random subsequence of the given list.
+-- Copied over from QuickCheck 2.8
+sublistOf :: [a] -> Gen [a]
+sublistOf = filterM (\_ -> choose (False, True))
 
 newtype Url = Url { unUrl :: BS.ByteString } deriving (Show)
 
