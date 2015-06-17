@@ -65,6 +65,7 @@ library
                   byteable >= 0.1 && <0.2,
                   cereal >= 0.4,
                   cryptohash >=0.11 && <0.12,
+                  either >=4.4,
                   -- cipher-aes >=0.2 && <0.3,
                   deepseq >= 1.1,
                   hex >= 0.1
@@ -105,5 +106,5 @@ test-suite test
                   tasty >= 0.10,
                   tasty-hunit >= 0.9,
                   tasty-quickcheck >= 0.8,
-                  QuickCheck < 2.8,
+                  QuickCheck >= 2.8,
                   hmacaroons
