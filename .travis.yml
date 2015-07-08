@@ -22,7 +22,8 @@ install:
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
  - travis_retry cabal update
- - cabal install --only-dependencies --enable-tests --enable-benchmarks
+ - cabal install hpc-coveralls
+ - cabal install --only-dependencies --enable-tests --enable-benchmarks --enable-coverage
 
 # Here starts the actual work to be performed for the package under
 # test; any command which exits with a non-zero exit code causes the
@@ -35,7 +36,7 @@ script:
  # (including tests/benchmarks)
  - cabal build
 
- - cabal test --show-details=streaming
+ - run-cabal-test --show-details=streaming
  - cabal check
 
  # tests that a source-distribution can be generated
@@ -45,4 +46,6 @@ script:
  - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
    (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
 
+after_script: 
+   - hpc-coveralls test
 # EOF
