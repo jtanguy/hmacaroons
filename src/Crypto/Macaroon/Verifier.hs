@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes        #-}
 {-|
 Module      : Crypto.Macaroon.Verifier
 Copyright   : (c) 2015 Julien Tanguy
@@ -13,79 +13,50 @@ Portability : portable
 
 -}
 module Crypto.Macaroon.Verifier (
-    Verified(..)
-  , CaveatVerifier
-  , (<???>)
+    Verifier
   , verifyMacaroon
   , verifySig
-  , verifyExact
-  , verifyFun
+  -- , verifyExact
+  -- , verifyFun
   , module Data.Attoparsec.ByteString.Char8
   , verifyCavs
 ) where
 
 
 import           Crypto.Hash
+import           Data.Attoparsec.ByteString
+import           Data.Attoparsec.ByteString.Char8
 import           Data.Bool
-import qualified Data.ByteString            as BS
 import           Data.Byteable
+import qualified Data.ByteString                  as BS
+import           Data.Either
+import           Data.Either.Validation
 import           Data.Foldable
 import           Data.Function
 import           Data.Maybe
 import           Data.Traversable
-import Data.Attoparsec.ByteString
-import Data.Attoparsec.ByteString.Char8
 
 import           Crypto.Macaroon.Internal
 
+type Verifier = Caveat -> Maybe (Either String Caveat)
 
--- | Opaque datatype for now. Might need more explicit errors
-data Verified = Ok | Failed deriving (Show,Eq)
-
-instance Monoid Verified where
-  mempty = Ok
-  mappend Ok Ok = Ok
-  mappend _ _ = Failed
-
-
-data CaveatVerifier = CV { vFun :: Caveat -> Maybe Verified , helpText :: String}
-
-instance Eq CaveatVerifier where
-  (==) = (==) `on` helpText
-
-instance Show CaveatVerifier where
-    show = helpText
-
-(<???>) :: (Caveat -> Maybe Verified) -> String -> CaveatVerifier
-f <???> t = CV f t
-
-verifySig :: Key -> Macaroon -> Verified
-verifySig k m = bool Failed Ok $
+verifySig :: Key -> Macaroon -> Either String Macaroon
+verifySig k m = bool (Left "Signatures do not match") (Right m) $
       signature m == foldl' hash (toBytes (hmac derivedKey (identifier m) :: HMAC SHA256)) (caveats m)
   where
     hash s c = toBytes (hmac s (vid c `BS.append` cid c) :: HMAC SHA256)
     derivedKey = toBytes (hmac "macaroons-key-generator" k :: HMAC SHA256)
 
-verifyMacaroon :: Key -> [CaveatVerifier] -> Macaroon -> Verified
-verifyMacaroon secret verifiers m = verifySig secret m `mappend` verifyCavs verifiers m
+verifyMacaroon :: Key -> [Verifier] -> Macaroon -> Either String Macaroon
+verifyMacaroon secret verifiers m = verifySig secret m >>= verifyCavs verifiers
 
-
-verifyCavs :: [CaveatVerifier] -> Macaroon -> Verified
-verifyCavs verifiers m = foldMap (\c -> fromMaybe Failed $ foldMap (($ c) . vFun) verifiers) (caveats m)
-
-verifyExact :: (Eq a) => Key -> a -> Parser a -> Caveat -> Maybe Verified
-verifyExact k expected = verifyFun k (expected ==)
-
-verifyFun :: Key -> (a -> Bool) -> Parser a -> Caveat -> Maybe Verified
-verifyFun key f parser cav = if key `BS.isPrefixOf` cid cav then
-        case parseOnly kvparser (cid cav) of
-          Right v -> (bool Failed Ok . f) <$> Just v
-          Left _ -> Just Failed
-        else Nothing
+verifyCavs :: [Verifier] -> Macaroon -> Either String Macaroon
+verifyCavs verifiers m = case partitionEithers verifiedCaveats of
+    ([],_) -> Right m
+    (errs,_) -> Left (mconcat errs)
   where
-    kvparser = do
-      key <- string key
-      skipSpace
-      string "="
-      skipSpace
-      parser <* endOfInput
+    verifiedCaveats = map (\c -> defaultFail c $ foldMap (fmap eitherToValidation . ($c)) verifiers) $ caveats m
+    defaultFail c = maybe (Left ("No validation for this caveat: " ++ show c)) validationToEither
+
+
+-- TODO: define API

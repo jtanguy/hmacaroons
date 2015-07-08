@@ -86,6 +86,7 @@ benchmark bench
                   cereal >= 0.4,
                   cryptohash >=0.11 && <0.12,
                   -- cipher-aes >=0.2 && <0.3,
+                  either >=4.4,
                   hex >= 0.1,
                   deepseq >= 1.1,
                   criterion >= 1.1
@@ -102,6 +103,7 @@ test-suite test
                   byteable >= 0.1 && <0.2,
                   cereal >= 0.4,
                   cryptohash >=0.11 && <0.12,
+                  either >=4.4,
                   hex >= 0.1,
                   tasty >= 0.10,
                   tasty-hunit >= 0.9,
