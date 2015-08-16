@@ -63,3 +63,39 @@ m3 = addFirstPartyCaveat "value = 42" m2
 sigs = testProperty "Signatures" $ \sm -> verifySig (secret sm) (macaroon sm) == Right (macaroon sm)
 
 -- TODO: Re-do tests
+{-
+firstParty = testGroup "First party caveats" [
+    testGroup "Pure verifiers" [
+        testProperty "Zero caveat" $
+                forAll (sublistOf allvs) (\vs -> Right m == verifyCavs vs m)
+      , testProperty "One caveat" $
+          forAll (sublistOf allvs) (\vs -> disjoin [
+              Right m2 == verifyCavs vs m2 .&&. any (`elem` vs) [exTC,funTCPre] .&&. (exTZ `notElem` vs)
+            , True === isLeft( verifyCavs vs m2)
+            ])
+      , testProperty "Two Exact" $
+          forAll (sublistOf allvs) (\vs -> disjoin [
+              Right m3 == verifyCavs vs m3 .&&.
+                any (`elem` vs) [exTC,funTCPre] .&&.  (exTZ `notElem` vs) .&&.
+                any (`elem` vs) [exV42,funTV43lte] .&&.  (exV43 `notElem` vs)
+            , True === isLeft (verifyCavs vs m3)
+            ])
+      ]
+    , testGroup "Pure verifiers with sig" [
+        testProperty "Zero caveat" $
+                forAll (sublistOf allvs) (\vs -> Right m == verifyMacaroon sec vs m)
+      , testProperty "One caveat" $
+          forAll (sublistOf allvs) (\vs -> disjoin [
+              Right m2 == verifyMacaroon sec vs m2 .&&. any (`elem` vs) [exTC,funTCPre] .&&. (exTZ `notElem` vs)
+            , True === isLeft (verifyMacaroon sec vs m2)
+            ])
+      , testProperty "Two Exact" $
+          forAll (sublistOf allvs) (\vs -> disjoin [
+              Right m3 == verifyMacaroon sec vs m3 .&&.
+                any (`elem` vs) [exTC,funTCPre] .&&.  (exTZ `notElem` vs) .&&.
+                any (`elem` vs) [exV42,funTV43lte] .&&.  (exV43 `notElem` vs)
+            , True === isLeft (verifyMacaroon sec vs m3)
+            ])
+      ]
+    ]
+    -}

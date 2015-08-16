@@ -1,14 +1,14 @@
 { mkDerivation, attoparsec, base, base64-bytestring, byteable
 , bytestring, cereal, cryptohash, deepseq, either, hex, QuickCheck
-, stdenv, tasty, tasty-hunit, tasty-quickcheck
+, stdenv, tasty, tasty-hunit, tasty-quickcheck, transformers
 }:
 mkDerivation {
   pname = "hmacaroons";
-  version = "0.1.0.0";
+  version = "0.2.0.0";
   src = ./.;
   buildDepends = [
     attoparsec base base64-bytestring byteable bytestring cereal
-    cryptohash deepseq either hex
+    cryptohash deepseq either hex transformers
   ];
   testDepends = [
     attoparsec base base64-bytestring byteable bytestring cereal
