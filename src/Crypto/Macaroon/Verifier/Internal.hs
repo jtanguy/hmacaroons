@@ -44,7 +44,7 @@ instance Monoid ValidationError where
     (ValidatorError e) `mappend` (ParseError _) = ValidatorError e
     (ParseError _) `mappend` (ValidatorError e) = ValidatorError e
 
-
+-- | Check that the given macaroon has a correct signature
 verifySig :: Key -> Macaroon -> Either ValidationError Macaroon
 verifySig k m = bool (Left SigMismatch) (Right m) $
     signature m == foldl' hash (toBytes (hmac derivedKey (identifier m) :: HMAC SHA256)) (caveats m)

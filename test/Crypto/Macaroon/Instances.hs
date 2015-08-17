@@ -11,9 +11,9 @@ This test suite is based on the pymacaroons test suite:
 -}
 module Crypto.Macaroon.Instances where
 
-import Control.Monad
+import           Control.Monad
 import           Data.Byteable
-import qualified Data.ByteString as BS
+import qualified Data.ByteString       as BS
 import qualified Data.ByteString.Char8 as B8
 import           Data.Hex
 import           Data.List

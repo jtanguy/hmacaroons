@@ -2,16 +2,13 @@ name:                hmacaroons
 version:             0.2.0.0
 synopsis:            Haskell implementation of macaroons
 description:
-  = Macaroons: Pure haskell implementation of macaroons
-  #macaroons-pure-haskell-implementation-of-macaroons#
-  .
-  Macaroons is a pure haskell implementation of macaroons. It aims to
+  Hmacaroons is a pure haskell implementation of macaroons. It aims to
   provide compatibility at a serialized level with the
   <https://github.com/rescrv/libmacaroons reference implementation> and
   the <https://github.com/ecordell/pymacaroons python implementation>
   .
   __WARNING: This library has not been audited by security experts.__
-  __There is no error handling at the moment, everyhting is silently accepted__
+  __There is no error handling at the moment, everything is silently accepted__
   .
   It is developed in the purpose of exploration purposes, and would need
   much more attention if it were to be used in production.
