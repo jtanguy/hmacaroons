@@ -11,9 +11,10 @@ This test suite is based on the pymacaroons test suite:
 -}
 module Crypto.Macaroon.Instances where
 
-import Control.Monad
+import           Control.Applicative
+import           Control.Monad
 import           Data.Byteable
-import qualified Data.ByteString as BS
+import qualified Data.ByteString       as BS
 import qualified Data.ByteString.Char8 as B8
 import           Data.Hex
 import           Data.List
@@ -32,10 +33,10 @@ instance Arbitrary Url where
         domain <- elements [".com",".net"]
         return . Url . B8.pack $ (protocol ++ name ++ domain)
 
-newtype Secret = Secret { unSecret :: BS.ByteString } deriving (Show)
+newtype BSSecret = BSSecret { unSecret :: BS.ByteString } deriving (Show)
 
-instance Arbitrary Secret where
-    arbitrary = Secret . B8.pack <$> scale (*3) arbitrary
+instance Arbitrary BSSecret where
+    arbitrary = BSSecret . B8.pack <$> scale (*3) arbitrary
 
 newtype Identifier = Identifier { unIdent :: BS.ByteString } deriving (Show)
 

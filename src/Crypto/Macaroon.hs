@@ -23,6 +23,7 @@ module Crypto.Macaroon (
     -- * Types
       Macaroon
     , Caveat
+    , Secret
     , Key
     , Location
     , Sig
@@ -33,43 +34,35 @@ module Crypto.Macaroon (
     , caveats
     , signature
     -- ** Caveats
-    , caveatLoc
-    , caveatId
-    , caveatVId
+    , cl
+    , cid
+    , vid
 
     -- * Create Macaroons
     , create
     , inspect
     , addFirstPartyCaveat
     -- , addThirdPartyCaveat
+    -- * Serialize
+    , module Crypto.Macaroon.Serializer.Base64
+    -- * Verify
+    , module Crypto.Macaroon.Verifier
     ) where
 
 -- import           Crypto.Cipher.AES
 import           Crypto.Hash
 import           Data.Byteable
-import qualified Data.ByteString            as BS
-import qualified Data.ByteString.Base64.URL as B64
-import qualified Data.ByteString.Char8      as B8
+import qualified Data.ByteString                   as BS
 
 import           Crypto.Macaroon.Internal
+import           Crypto.Macaroon.Serializer.Base64
+import           Crypto.Macaroon.Verifier
 
 -- | Create a Macaroon from its key, identifier and location
-create :: Key -> Key -> Location -> Macaroon
+create :: Secret -> Key -> Location -> Macaroon
 create secret ident loc = MkMacaroon loc ident [] (toBytes (hmac derivedKey ident :: HMAC SHA256))
   where
     derivedKey = toBytes (hmac "macaroons-key-generator" secret :: HMAC SHA256)
-
--- | Caveat target location
-caveatLoc :: Caveat -> Location
-caveatLoc = cl
-
--- | Caveat identifier
-caveatId :: Caveat -> Key
-caveatId = cid
-
--- | Caveat verification identifier
-caveatVId :: Caveat -> Key
-caveatVId = vid
 
 -- | Inspect a macaroon's contents. For debugging purposes.
 inspect :: Macaroon -> String
@@ -89,5 +82,3 @@ addFirstPartyCaveat ident m = addCaveat (location m) ident BS.empty m
 -- addThirdPartyCaveat key cid loc m = addCaveat loc cid vid m
 --   where
 --     vid = encryptECB (initAES (signature m)) key
-
-

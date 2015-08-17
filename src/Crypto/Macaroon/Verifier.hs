@@ -1,5 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-|
 Module      : Crypto.Macaroon.Verifier
 Copyright   : (c) 2015 Julien Tanguy
@@ -13,80 +16,77 @@ Portability : portable
 
 -}
 module Crypto.Macaroon.Verifier (
-    Verified(..)
-  , CaveatVerifier
-  , (<???>)
-  , verifyMacaroon
-  , verifySig
-  , verifyExact
-  , verifyFun
-  , module Data.Attoparsec.ByteString.Char8
-  , verifyCavs
+    verify
+  , ValidationError(ValidatorError, ParseError)
+  -- , (.<), (.<=), (.==), (.>), (.>=)
+  -- , module Data.Attoparsec.ByteString.Char8
 ) where
 
 
-import           Crypto.Hash
+import           Control.Applicative
+import           Control.Monad hiding (forM)
+import           Control.Monad.IO.Class
+import           Data.Attoparsec.ByteString
+import           Data.Attoparsec.ByteString.Char8
 import           Data.Bool
-import qualified Data.ByteString            as BS
-import           Data.Byteable
-import           Data.Foldable
-import           Data.Function
-import           Data.Maybe
-import           Data.Monoid
 import           Data.Traversable
-import Data.Attoparsec.ByteString
-import Data.Attoparsec.ByteString.Char8
+import qualified Data.ByteString                  as BS
+import           Data.Either.Combinators
 
 import           Crypto.Macaroon.Internal
+import           Crypto.Macaroon.Verifier.Internal
 
 
--- | Opaque datatype for now. Might need more explicit errors
-data Verified = Ok | Failed deriving (Show,Eq)
-
-instance Monoid Verified where
-  mempty = Ok
-  mappend Ok Ok = Ok
-  mappend _ _ = Failed
 
 
-data CaveatVerifier = CV { vFun :: Caveat -> Maybe Verified , helpText :: String}
+-- (.<) :: (MonadIO m, Ord a, Parsable a) => Key -> m a -> Caveat -> m (Maybe (Either ValidationError Caveat))
+-- (.<) = verifyOpBool "Greater or equal" (<) "<"
 
-instance Eq CaveatVerifier where
-  (==) = (==) `on` helpText
+-- (.<=) :: (MonadIO m, Ord a, Parsable a) => Key -> m a -> Caveat -> m (Maybe (Either ValidationError Caveat))
+-- (.<=) = verifyOpBool "Strictly greater" (<=) "<="
 
-instance Show CaveatVerifier where
-    show = helpText
+-- (.==) :: (MonadIO m, Eq a, Parsable a) => Key -> m a -> Caveat -> m (Maybe (Either ValidationError Caveat))
+-- (.==) = verifyOpBool "Not equal" (==) "="
 
-(<???>) :: (Caveat -> Maybe Verified) -> String -> CaveatVerifier
-f <???> t = CV f t
+-- (.>) :: (MonadIO m, Ord a, Parsable a) => Key -> m a -> Caveat -> m (Maybe (Either ValidationError Caveat))
+-- (.>) = verifyOpBool "Less or equal" (>) ">"
 
-verifySig :: Key -> Macaroon -> Verified
-verifySig k m = bool Failed Ok $
-      signature m == foldl' hash (toBytes (hmac derivedKey (identifier m) :: HMAC SHA256)) (caveats m)
-  where
-    hash s c = toBytes (hmac s (vid c `BS.append` cid c) :: HMAC SHA256)
-    derivedKey = toBytes (hmac "macaroons-key-generator" k :: HMAC SHA256)
+-- (.>=) :: (MonadIO m, Ord a, Parsable a) => Key -> m a -> Caveat -> m (Maybe (Either ValidationError Caveat))
+-- (.>=) = verifyOpBool "Strictly less" (>=) ">="
 
-verifyMacaroon :: Key -> [CaveatVerifier] -> Macaroon -> Verified
-verifyMacaroon secret verifiers m = verifySig secret m `mappend` verifyCavs verifiers m
+-- | Verify a Macaroon's signature and caveats, given the corresponding Secret
+-- and verifiers.
+--
+-- A verifier is a function of type
+-- @'MonadIO' m => 'Caveat' -> m ('Maybe' ('Either' 'ValidatorError' 'Caveat'))@.
+--
+-- It should return:
+--
+-- * 'Nothing' if the caveat is not related to the verifier
+-- (for instance a time verifier is given an action caveat);
+-- * 'Just' ('Left' ('ParseError' reason)) if the verifier  is related to the
+-- caveat, but failed to parse it completely;
+-- * 'Just' ('Left' ('ValidatorError' reason)) if the verifier is related to the
+-- caveat, parsed it and invalidated it;
+-- * 'Just' ('Right' '()') if the verifier has successfully verified the
+-- given caveat
+verify :: (Functor m, MonadIO m) => Secret -> [Caveat -> m (Maybe (Either ValidationError ()))] -> Macaroon -> m (Either ValidationError Macaroon)
+verify secret verifiers m = join <$> forM (verifySig secret m) (verifyCavs verifiers)
 
 
-verifyCavs :: [CaveatVerifier] -> Macaroon -> Verified
-verifyCavs verifiers m = foldMap (\c -> fromMaybe Failed $ foldMap (($ c) . vFun) verifiers) (caveats m)
+-- verifyOpBool :: MonadIO m => String -> Parser a -> (a -> a -> Bool) -> BS.ByteString -> Key -> m a -> Caveat -> m (Maybe (Either ValidationError Caveat))
+-- verifyOpBool err p f op k val = verifyParser k valueParser $ \s -> do
+--     expected <- val
+--     return $ bool (Left $ ValidatorError err) (Right Win) =<< f expected <$> mapLeft ParseError (parseOnly p s)
+--   where
+--     valueParser = string op *> skipSpace *> takeByteString
 
-verifyExact :: (Eq a) => Key -> a -> Parser a -> Caveat -> Maybe Verified
-verifyExact k expected = verifyFun k (expected ==)
+-- verifyParser :: (MonadIO m) => Key -> Parser a -> (a -> m (Either ValidationError Win)) -> Caveat -> m (Maybe (Either ValidationError Caveat))
+-- verifyParser k p f c = case parseOnly keyParser . cid $ c of
+--     Left _ -> return Nothing
+--     Right bs -> Just <$> case parseOnly p bs of
+--       Left err -> return $ Left $ ParseError err
+--       Right a -> fmap (const c) <$> f a
+--   where
+--     keyParser = string k *> skipSpace *> takeByteString
 
-verifyFun :: Key -> (a -> Bool) -> Parser a -> Caveat -> Maybe Verified
-verifyFun key f parser cav = if key `BS.isPrefixOf` cid cav then
-        case parseOnly kvparser (cid cav) of
-          Right v -> (bool Failed Ok . f) <$> Just v
-          Left _ -> Just Failed
-        else Nothing
-  where
-    kvparser = do
-      key <- string key
-      skipSpace
-      string "="
-      skipSpace
-      parser <* endOfInput

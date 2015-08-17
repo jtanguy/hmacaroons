@@ -1,17 +1,14 @@
 name:                hmacaroons
-version:             0.1.0.0
+version:             0.4.0.0
 synopsis:            Haskell implementation of macaroons
 description:
-  = Macaroons: Pure haskell implementation of macaroons
-  #macaroons-pure-haskell-implementation-of-macaroons#
-  .
-  Macaroons is a pure haskell implementation of macaroons. It aims to
+  Hmacaroons is a pure haskell implementation of macaroons. It aims to
   provide compatibility at a serialized level with the
   <https://github.com/rescrv/libmacaroons reference implementation> and
   the <https://github.com/ecordell/pymacaroons python implementation>
   .
   __WARNING: This library has not been audited by security experts.__
-  __There is no error handling at the moment, everyhting is silently accepted__
+  __There is no error handling at the moment, everything is silently accepted__
   .
   It is developed in the purpose of exploration purposes, and would need
   much more attention if it were to be used in production.
@@ -46,6 +43,7 @@ extra-source-files:  README.md
                      CONTRIBUTING.md
                      CHANGELOG.md
 cabal-version:       >=1.10
+tested-with:         GHC==7.8.4, GHC==7.10.1
 
 source-repository head
     type:       git
@@ -54,18 +52,21 @@ source-repository head
 
 library
   exposed-modules:     Crypto.Macaroon
-                       Crypto.Macaroon.Binder
+                       -- Crypto.Macaroon.Binder
                        Crypto.Macaroon.Serializer.Base64
                        Crypto.Macaroon.Verifier
   other-modules:       Crypto.Macaroon.Internal
+                       Crypto.Macaroon.Verifier.Internal
   build-depends:  base >=4 && < 5,
                   attoparsec >=0.12,
+                  transformers >= 0.3,
                   bytestring >=0.10,
                   base64-bytestring >= 1.0,
                   byteable >= 0.1 && <0.2,
                   cereal >= 0.4,
                   cryptohash >=0.11 && <0.12,
                   either >=4.4,
+                  -- nonce,
                   -- cipher-aes >=0.2 && <0.3,
                   deepseq >= 1.1,
                   hex >= 0.1
@@ -86,6 +87,7 @@ benchmark bench
                   cereal >= 0.4,
                   cryptohash >=0.11 && <0.12,
                   -- cipher-aes >=0.2 && <0.3,
+                  either >=4.4,
                   hex >= 0.1,
                   deepseq >= 1.1,
                   criterion >= 1.1
@@ -93,7 +95,7 @@ benchmark bench
 test-suite test
   default-language: Haskell2010
   type: exitcode-stdio-1.0
-  hs-source-dirs: test
+  hs-source-dirs: src, test
   main-is: main.hs
   build-depends:  base >= 4 && <5,
                   attoparsec >=0.12,
@@ -102,9 +104,11 @@ test-suite test
                   byteable >= 0.1 && <0.2,
                   cereal >= 0.4,
                   cryptohash >=0.11 && <0.12,
+                  either >=4.4,
                   hex >= 0.1,
                   tasty >= 0.10,
                   tasty-hunit >= 0.9,
                   tasty-quickcheck >= 0.8,
                   QuickCheck >= 2.8,
-                  hmacaroons
+                  deepseq >= 1.1,
+                  transformers >= 0.3
