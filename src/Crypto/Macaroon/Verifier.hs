@@ -32,6 +32,7 @@ import           Data.Byteable
 import           Data.Foldable
 import           Data.Function
 import           Data.Maybe
+import           Data.Monoid
 import           Data.Traversable
 import Data.Attoparsec.ByteString
 import Data.Attoparsec.ByteString.Char8
