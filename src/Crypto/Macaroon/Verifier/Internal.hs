@@ -58,7 +58,7 @@ verifySig k m = bool (Left SigMismatch) (Right m) $
     derivedKey = toBytes (hmac "macaroons-key-generator" k :: HMAC SHA256)
 
 -- | Given a list of verifiers, verify each caveat of the given macaroon
-verifyCavs :: MonadIO m
+verifyCavs :: (Functor m, MonadIO m)
            => [Caveat -> m (Maybe (Either ValidationError ()))]
            -> Macaroon
            -> m (Either ValidationError Macaroon)
