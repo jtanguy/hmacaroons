@@ -23,7 +23,11 @@ import qualified Data.ByteString.Char8  as B8
 import           Data.Hex
 import           Data.List
 
--- |Type alias for Macaroons and Caveat keys and identifiers
+
+-- |Type alias for Macaroons secret keys
+type Secret = BS.ByteString
+
+-- |Type alias for Macaroons and Caveat and identifiers
 type Key = BS.ByteString
 
 -- |Type alias for Macaroons and Caveat locations

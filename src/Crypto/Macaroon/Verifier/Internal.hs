@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 {-|
 Module      : Crypto.Macaroon.Verifier.Internal
 Copyright   : (c) 2015 Julien Tanguy
@@ -19,22 +19,26 @@ import           Control.Monad.IO.Class
 import           Crypto.Hash
 import           Data.Bool
 import           Data.Byteable
-import qualified Data.ByteString                  as BS
+import qualified Data.ByteString          as BS
 import           Data.Either
 import           Data.Either.Validation
 import           Data.Foldable
 import           Data.Maybe
+import           Data.Monoid
 
 import           Crypto.Macaroon.Internal
 
-data Win = Win
+-- | Type representing different validation errors.
+-- Only 'ParseError' and 'ValidatorError' are exported, 'SigMismatch' and
+-- 'NoVerifier' are used internally and should not be used by the user
+data ValidationError = SigMismatch -- ^ Signatures do not match
+                     | NoVerifier -- ^ No verifier can handle a given caveat
+                     | ParseError String -- ^ A verifier had a parse error
+                     | ValidatorError String -- ^ A verifier failed
+                     deriving (Show,Eq)
 
-data ValidationError = SigMismatch
-                     | NoVerifier
-                     | ParseError String
-                     | ValidatorError String
-                     deriving Show
-
+-- | The 'Monoid' instance is written so 'SigMismatch' is an annihilator,
+-- and 'NoVerifier' is the identity element
 instance Monoid ValidationError where
     mempty = NoVerifier
     NoVerifier `mappend` e = e
@@ -52,9 +56,9 @@ verifySig k m = bool (Left SigMismatch) (Right m) $
     hash s c = toBytes (hmac s (vid c `BS.append` cid c) :: HMAC SHA256)
     derivedKey = toBytes (hmac "macaroons-key-generator" k :: HMAC SHA256)
 
-
+-- | Given a list of verifiers, verify each caveat of the given macaroon
 verifyCavs :: MonadIO m
-           => [Caveat -> m (Maybe (Either ValidationError Caveat))]
+           => [Caveat -> m (Maybe (Either ValidationError ()))]
            -> Macaroon
            -> m (Either ValidationError Macaroon)
 verifyCavs verifiers m = gatherEithers <$> mapM validateCaveat (caveats m)
@@ -65,7 +69,7 @@ verifyCavs verifiers m = gatherEithers <$> mapM validateCaveat (caveats m)
      - starting value for the foldM. We are guaranteed to have a `Just something`
      - from it.
      -}
-    validateCaveat c = fromJust <$> foldM (\res v -> mappend res . fmap eitherToValidation <$> v c) (defErr c) verifiers
+    validateCaveat c = fmap (const c) . fromJust <$> foldM (\res v -> mappend res . fmap eitherToValidation <$> v c) (defErr c) verifiers
     -- defErr :: Caveat -> Maybe (Validation String Caveat)
     defErr c = Just $ Failure NoVerifier
     -- gatherEithers :: [Validation String Caveat] -> Either String Caveat

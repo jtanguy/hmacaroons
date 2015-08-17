@@ -32,10 +32,10 @@ instance Arbitrary Url where
         domain <- elements [".com",".net"]
         return . Url . B8.pack $ (protocol ++ name ++ domain)
 
-newtype Secret = Secret { unSecret :: BS.ByteString } deriving (Show)
+newtype BSSecret = BSSecret { unSecret :: BS.ByteString } deriving (Show)
 
-instance Arbitrary Secret where
-    arbitrary = Secret . B8.pack <$> scale (*3) arbitrary
+instance Arbitrary BSSecret where
+    arbitrary = BSSecret . B8.pack <$> scale (*3) arbitrary
 
 newtype Identifier = Identifier { unIdent :: BS.ByteString } deriving (Show)
 
