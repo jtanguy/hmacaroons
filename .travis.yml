@@ -26,14 +26,13 @@ install:
    - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
    - travis_retry cabal update
    - sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config # The container environment reports 16 cores
-   - cabal install hpc-coveralls
    - cabal install --only-dependencies
 
 script:
-   - cabal configure --enable-tests --enable-benchmarks --enable-coverage -v2
+   - cabal configure --enable-tests --enable-benchmarks -v2
    - cabal build
 
-   - run-cabal-test --show-details=streaming
+   - cabal test --show-details=streaming
 
    - cabal check
 
@@ -42,6 +41,4 @@ script:
    - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
      (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
 
-after_script:
-- hpc-coveralls test
 # EOF
