@@ -43,16 +43,20 @@ module Crypto.Macaroon (
     , inspect
     , addFirstPartyCaveat
     -- , addThirdPartyCaveat
+    -- * Serialize
+    , module Crypto.Macaroon.Serializer.Base64
+    -- * Verify
+    , module Crypto.Macaroon.Verifier
     ) where
 
 -- import           Crypto.Cipher.AES
 import           Crypto.Hash
 import           Data.Byteable
-import qualified Data.ByteString            as BS
-import qualified Data.ByteString.Base64.URL as B64
-import qualified Data.ByteString.Char8      as B8
+import qualified Data.ByteString                   as BS
 
 import           Crypto.Macaroon.Internal
+import           Crypto.Macaroon.Serializer.Base64
+import           Crypto.Macaroon.Verifier
 
 -- | Create a Macaroon from its key, identifier and location
 create :: Secret -> Key -> Location -> Macaroon
@@ -78,5 +82,3 @@ addFirstPartyCaveat ident m = addCaveat (location m) ident BS.empty m
 -- addThirdPartyCaveat key cid loc m = addCaveat loc cid vid m
 --   where
 --     vid = encryptECB (initAES (signature m)) key
-
-

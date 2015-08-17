@@ -30,16 +30,16 @@ import           Data.Monoid
 import           Crypto.Macaroon.Internal
 
 -- | Type representing different validation errors.
--- Only 'ParseError' and 'ValidatorError' are exported, 'SigMismatch' and
--- 'NoVerifier' are used internally and should not be used by the user
+-- Only 'ParseError' and 'ValidatorError' are exported, @SigMismatch@ and
+-- @NoVerifier@ are used internally and should not be used by the user
 data ValidationError = SigMismatch -- ^ Signatures do not match
                      | NoVerifier -- ^ No verifier can handle a given caveat
                      | ParseError String -- ^ A verifier had a parse error
                      | ValidatorError String -- ^ A verifier failed
                      deriving (Show,Eq)
 
--- | The 'Monoid' instance is written so 'SigMismatch' is an annihilator,
--- and 'NoVerifier' is the identity element
+-- | The 'Monoid' instance is written so @SigMismatch@ is an annihilator,
+-- and @NoVerifier@ is the identity element
 instance Monoid ValidationError where
     mempty = NoVerifier
     NoVerifier `mappend` e = e
