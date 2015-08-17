@@ -26,7 +26,7 @@ install:
    - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
    - travis_retry cabal update
    - sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config # The container environment reports 16 cores
-   - cabal install --only-dependencies
+   - cabal install --only-dependencies --enable-tests --enable-benchmarks
 
 script:
    - cabal configure --enable-tests --enable-benchmarks -v2
