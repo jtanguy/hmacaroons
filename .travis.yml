@@ -2,6 +2,8 @@
 language: c
 sudo: false
 
+
+
 cache:
   directories:
     - $HOME/.cabsnap
@@ -16,10 +18,14 @@ matrix:
     - env: CABALVER=1.18 GHCVER=7.8.4
       compiler: ": #GHC 7.8.4"
       addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4], sources: [hvr-ghc]}}
-    - env: CABALVER=1.22 GHCVER=7.10.1
-      compiler: ": #GHC 7.10.1"
-      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.1], sources: [hvr-ghc]}}
+    - env: CABALVER=1.22 GHCVER=7.10.2
+      compiler: ": #GHC 7.10.2"
+      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.2], sources: [hvr-ghc]}}
 
+env:
+  global:
+    - GH_REF: github.com/jtanguy/hmacaroons.git
+    - secure: "ITyaZaTiQFOUQFN24wFWuo5sYuVJg6UQSJd28NpGdCJS9NOMk2ijZfDpY05+dug9TacmiALZ5Lt3Xlcx0pJSRkpYbG0AaB1k/52/D2LtOF13fDPAxHNbfvBRiUS4hk2LBl3SQFimYoTRNA/ssXvgjwehTB4ytkPgkLZu3rODin8="
 
 before_install:
  - unset CC
@@ -71,10 +77,14 @@ script:
  - cabal check
  - cabal sdist   # tests that a source-distribution can be generated
 
+ - bash ./scripts/pushdoc.sh
+
 # Check that the resulting source distribution can be built & installed.
 # If there are no other `.tar.gz` files in `dist`, this can be even simpler:
 # `cabal install --force-reinstalls dist/*-*.tar.gz`
  - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
    (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
+
+
 
 # EOF
