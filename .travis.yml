@@ -25,7 +25,7 @@ matrix:
 env:
   global:
     - GH_REF: github.com/jtanguy/hmacaroons.git
-    - secure: "ITyaZaTiQFOUQFN24wFWuo5sYuVJg6UQSJd28NpGdCJS9NOMk2ijZfDpY05+dug9TacmiALZ5Lt3Xlcx0pJSRkpYbG0AaB1k/52/D2LtOF13fDPAxHNbfvBRiUS4hk2LBl3SQFimYoTRNA/ssXvgjwehTB4ytkPgkLZu3rODin8="
+    - secure: "cpcJvp233pVNy05VeWgzUEw1xYCekk1xT1x2grzhUx8mpCqXZda+Xbu76QCqLSESPgc8Q39m6bR8c+oLkbgRM1U+hR91+2sccKaP9cLTad0yoPRdm6qDB96mzLcEX+yl22GVVzSg20AZx0B9edIT9z7pnEVMJV4iDwhsx/p5Uas="
 
 before_install:
  - unset CC
