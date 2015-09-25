@@ -21,10 +21,10 @@ before_cache:
 
 matrix:
   include:
-    - env: CABALVER=1.18 GHCVER=7.8.4
+    - env: CABALVER=1.18 GHCVER=7.8.4 PUSH_DOCS=false
       compiler: ": #GHC 7.8.4"
       addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4], sources: [hvr-ghc]}}
-    - env: CABALVER=1.22 GHCVER=7.10.2
+    - env: CABALVER=1.22 GHCVER=7.10.2 PUSH_DOCS=true
       compiler: ": #GHC 7.10.2"
       addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.2], sources: [hvr-ghc]}}
 
@@ -83,7 +83,7 @@ script:
  - cabal check
  - cabal sdist   # tests that a source-distribution can be generated
 
- - bash ./scripts/pushdoc.sh
+ - if [ true = $PUSH_DOCS ]; then bash ./scripts/pushdoc.sh; fi
 
 # Check that the resulting source distribution can be built & installed.
 # If there are no other `.tar.gz` files in `dist`, this can be even simpler:
