@@ -2,7 +2,6 @@ Macaroons: Pure haskell implementation of macaroons
 ===================================================
 
 [![Build Status](https://travis-ci.org/jtanguy/hmacaroons.svg?branch=master)](https://travis-ci.org/jtanguy/hmacaroons)
-
 [![Join the chat at https://gitter.im/jtanguy/hmacaroons](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jtanguy/hmacaroons?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Macaroons is a pure haskell implementation of macaroons. It aims to provide
