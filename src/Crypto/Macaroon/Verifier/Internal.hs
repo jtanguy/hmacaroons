@@ -29,6 +29,13 @@ import           Data.Monoid
 
 import           Crypto.Macaroon.Internal
 
+
+-- | Type representing the result of a validator
+data VerifierResult = Verified -- ^ The caveat is correctly parsed and verified
+                    | Refused ValidationError -- ^ The caveat is refused (Either a parse error or a validation error
+                    | Unrelated -- ^ The given verifier does not verify the caveat
+                    deriving (Show, Eq)
+
 -- | Type representing different validation errors.
 -- Only 'ParseError' and 'ValidatorError' are exported, @SigMismatch@ and
 -- @NoVerifier@ are used internally and should not be used by the user
@@ -59,7 +66,7 @@ verifySig k m = bool (Left SigMismatch) (Right m) $
 
 -- | Given a list of verifiers, verify each caveat of the given macaroon
 verifyCavs :: (Functor m, MonadIO m)
-           => [Caveat -> m (Maybe (Either ValidationError ()))]
+           => [Caveat -> m VerifierResult]
            -> Macaroon
            -> m (Either ValidationError Macaroon)
 verifyCavs verifiers m = gatherEithers <$> mapM validateCaveat (caveats m)
@@ -70,7 +77,11 @@ verifyCavs verifiers m = gatherEithers <$> mapM validateCaveat (caveats m)
      - starting value for the foldM. We are guaranteed to have a `Just something`
      - from it.
      -}
-    validateCaveat c = fmap (const c) . fromJust <$> foldM (\res v -> mappend res . fmap eitherToValidation <$> v c) (defErr c) verifiers
+    validateCaveat c = fmap (const c) . fromJust <$> foldM (\res v -> mappend res . fmap eitherToValidation . vResult2MaybeEither <$> v c) (defErr c) verifiers
+    -- vResult2MaybeEither :: VerifierResult -> Maybe (Either ValidationError ())
+    vResult2MaybeEither Unrelated = Nothing
+    vResult2MaybeEither Verified = Just (Right ())
+    vResult2MaybeEither (Refused e)= Just (Left e)
     -- defErr :: Caveat -> Maybe (Validation String Caveat)
     defErr c = Just $ Failure NoVerifier
     -- gatherEithers :: [Validation String Caveat] -> Either String Caveat

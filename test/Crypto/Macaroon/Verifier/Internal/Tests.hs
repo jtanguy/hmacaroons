@@ -45,19 +45,19 @@ m = create sec key loc
 m2 :: Macaroon
 m2 = addFirstPartyCaveat "test = caveat" m
 
-vtest :: Caveat -> IO (Maybe (Either ValidationError ()))
+vtest :: Caveat -> IO VerifierResult
 vtest c = return $ if "test" `BS.isPrefixOf` cid c then
-    Just $ bool (Left (ValidatorError "Failed")) (Right ()) $ "test = caveat" == cid c
-    else Nothing
+    bool (Refused (ValidatorError "Failed")) Verified $ "test = caveat" == cid c
+    else Unrelated
 
 
 m3 :: Macaroon
 m3 = addFirstPartyCaveat "value = 42" m2
 
-vval :: Caveat -> IO (Maybe (Either ValidationError ()))
+vval :: Caveat -> IO VerifierResult
 vval c = return $ if "value" `BS.isPrefixOf` cid c then
-    Just $ bool (Left (ValidatorError "Failed")) (Right ()) $ "value = 42" == cid c
-    else Nothing
+    bool (Refused (ValidatorError "Failed")) Verified $ "value = 42" == cid c
+    else Unrelated
 
 
 {-

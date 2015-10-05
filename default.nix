@@ -4,13 +4,13 @@
 }:
 mkDerivation {
   pname = "hmacaroons";
-  version = "0.4.0.0";
+  version = "0.5.0.0";
   src = ./.;
-  buildDepends = [
+  libraryHaskellDepends = [
     attoparsec base base64-bytestring byteable bytestring cereal
     cryptohash deepseq either hex transformers
   ];
-  testDepends = [
+  testHaskellDepends = [
     attoparsec base base64-bytestring byteable bytestring cereal
     cryptohash deepseq either hex QuickCheck tasty tasty-hunit
     tasty-quickcheck transformers
