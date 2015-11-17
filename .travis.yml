@@ -85,7 +85,7 @@ script:
     fi
   - cabal build   # this builds all libraries and executables (including tests/benchmarks)
   - run-cabal-test test
-  - cabal bench
+  - cabal bench --benchmark-options="--output benchmark.html"
   - cabal check
   - cabal sdist   # tests that a source-distribution can be generated
     # Check that the resulting source distribution can be built & installed.
