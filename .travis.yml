@@ -78,14 +78,15 @@ install:
 script:
  - if [ -f configure.ac ]; then autoreconf -i; fi
  - cabal install hpc-coveralls --constraint=retry==0.6
- - if [ 1.18 = $CABALVER ];
-   then 
+ - if [ "1.18" = $CABALVER ];
+   then
      cabal configure --enable-tests --enable-benchmarks -v2 --enable-library-coverage  # -v2 provides useful information for debugging
    else
      cabal configure --enable-tests --enable-benchmarks -v2 --enable-coverage  # -v2 provides useful information for debugging
    fi
  - cabal build   # this builds all libraries and executables (including tests/benchmarks)
  - run-cabal-test test
+ - cabal bench
  - cabal check
  - cabal sdist   # tests that a source-distribution can be generated
 
@@ -99,7 +100,4 @@ script:
 after_script:
  - if [ true = $PUSH_DOCS ]; then bash ./scripts/pushdoc.sh; fi
  - hpc-coveralls test
-
-
-
 # EOF
