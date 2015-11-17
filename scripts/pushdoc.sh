@@ -4,11 +4,11 @@ set -e # exit with nonzero exit code if anything fails
 # Build documentation
 cabal haddock
 
-# Go to haddock output dir
-cd dist/doc/html/hmacaroons
-
 # Copy benchmark
 cp benchmark.html dist/doc/html/hmacaroons
+
+# Go to haddock output dir
+cd dist/doc/html/hmacaroons
 
 # Quiet the git init message, since it's not useful in the build log
 git init > /dev/null 2>&1
