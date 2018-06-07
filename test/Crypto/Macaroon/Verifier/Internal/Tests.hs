@@ -29,6 +29,7 @@ import           Crypto.Macaroon.Instances
 tests :: TestTree
 tests = testGroup "Crypto.Macaroon.Verifier.Internal" [ sigs
                                                       , firstParty
+                                                      , validationErrorMonoid
                                                       ]
 
 {-
@@ -83,4 +84,31 @@ firstParty = testGroup "First party caveats" [
     , testCase "Two caveat win" $ do
         res <- verifyCavs [vtest, vval] m3 :: IO (Either ValidationError Macaroon)
         Right m3 @=? res
-      ]
+    ]
+
+instance Arbitrary ValidationError where
+    arbitrary = oneof
+        [ pure SigMismatch
+        , pure NoVerifier
+        , ParseError <$> arbitrary
+        , ValidatorError <$> arbitrary
+        ]
+
+validationErrorMonoid = testGroup "Validation Error forms a monoid"
+    [ testProperty "Identity (left)" leftId
+    , testProperty "Identity (right)" rightId
+    , testProperty "Associativity" associativity
+    , testProperty "SigMismatch is absorbing (left)" leftAbsorbing
+    , testProperty "SigMismatch is absorbing (right)" rightAbsorbing
+    ]
+  where
+    leftId :: ValidationError -> Bool
+    leftId ve = mempty `mappend` ve == ve
+    rightId :: ValidationError -> Bool
+    rightId ve = ve `mappend` mempty == ve
+    associativity :: ValidationError -> ValidationError -> ValidationError -> Bool
+    associativity a b c = mappend a (mappend b c) == mappend (mappend a b) c
+    leftAbsorbing :: ValidationError -> Bool
+    leftAbsorbing ve = SigMismatch `mappend` ve == SigMismatch
+    rightAbsorbing :: ValidationError -> Bool
+    rightAbsorbing ve = ve `mappend` SigMismatch == SigMismatch

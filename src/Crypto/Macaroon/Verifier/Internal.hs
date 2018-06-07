@@ -55,6 +55,8 @@ instance Monoid ValidationError where
     _ `mappend` SigMismatch = SigMismatch
     (ValidatorError e) `mappend` (ParseError _) = ValidatorError e
     (ParseError _) `mappend` (ValidatorError e) = ValidatorError e
+    (ValidatorError e1) `mappend` (ValidatorError e2) = ValidatorError $ e1 <> " " <> e2
+    (ParseError e1) `mappend` (ParseError e2) = ParseError $ e1 <> " " <> e2
 
 -- | Check that the given macaroon has a correct signature
 verifySig :: Key -> Macaroon -> Either ValidationError Macaroon
