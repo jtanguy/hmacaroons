@@ -41,10 +41,12 @@ before_install:
 install:
 # Build the dependencies
 - stack --no-terminal --install-ghc --resolver $RESOLVER test --bench --only-dependencies
+- stack --no-terminal --resolver $RESOLVER install stack-hpc-coveralls
 
 script:
   - stack --no-terminal --resolver $RESOLVER test --coverage
   - stack --no-terminal --resolver $RESOLVER bench
+  - shc hmacaroons test
 
 after_script:
   - if [ true = $PUSH_DOCS ]; then bash ./scripts/pushdoc.sh; fi
