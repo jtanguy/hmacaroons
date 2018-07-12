@@ -46,6 +46,7 @@ data ValidationError = SigMismatch -- ^ Signatures do not match
                      deriving (Show,Eq)
 
 
+-- | The 'Semigroup' instance is written so @SigMismatch@ is an annihilator
 instance Semigroup ValidationError where
     NoVerifier <> e = e
     e <> NoVerifier = e
@@ -56,8 +57,7 @@ instance Semigroup ValidationError where
     (ValidatorError e1) <> (ValidatorError e2) = ValidatorError $ e1 <> " " <> e2
     (ParseError e1) <> (ParseError e2) = ParseError $ e1 <> " " <> e2
 
--- | The 'Monoid' instance is written so @SigMismatch@ is an annihilator,
--- and @NoVerifier@ is the identity element
+-- | @NoVerifier@ is the identity element
 instance Monoid ValidationError where
     mempty = NoVerifier
 
