@@ -61,6 +61,7 @@ instance Semigroup ValidationError where
 -- | @NoVerifier@ is the identity element
 instance Monoid ValidationError where
     mempty = NoVerifier
+    mappend = (<>)
 
 -- | Check that the given macaroon has a correct signature
 verifySig :: Key -> Macaroon -> Either ValidationError Macaroon
