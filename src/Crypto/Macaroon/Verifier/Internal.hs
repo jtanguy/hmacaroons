@@ -26,6 +26,7 @@ import           Data.Either.Validation
 import           Data.Foldable
 import           Data.Maybe
 import           Data.Monoid
+import           Data.Semigroup
 
 import           Crypto.Macaroon.Internal
 
