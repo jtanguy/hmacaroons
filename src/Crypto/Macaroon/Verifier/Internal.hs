@@ -45,18 +45,21 @@ data ValidationError = SigMismatch -- ^ Signatures do not match
                      | ValidatorError String -- ^ A verifier failed
                      deriving (Show,Eq)
 
+
+instance Semigroup ValidationError where
+    NoVerifier <> e = e
+    e <> NoVerifier = e
+    SigMismatch <> _ = SigMismatch
+    _ <> SigMismatch = SigMismatch
+    (ValidatorError e) <> (ParseError _) = ValidatorError e
+    (ParseError _) <> (ValidatorError e) = ValidatorError e
+    (ValidatorError e1) <> (ValidatorError e2) = ValidatorError $ e1 <> " " <> e2
+    (ParseError e1) <> (ParseError e2) = ParseError $ e1 <> " " <> e2
+
 -- | The 'Monoid' instance is written so @SigMismatch@ is an annihilator,
 -- and @NoVerifier@ is the identity element
 instance Monoid ValidationError where
     mempty = NoVerifier
-    NoVerifier `mappend` e = e
-    e `mappend` NoVerifier = e
-    SigMismatch `mappend` _ = SigMismatch
-    _ `mappend` SigMismatch = SigMismatch
-    (ValidatorError e) `mappend` (ParseError _) = ValidatorError e
-    (ParseError _) `mappend` (ValidatorError e) = ValidatorError e
-    (ValidatorError e1) `mappend` (ValidatorError e2) = ValidatorError $ e1 <> " " <> e2
-    (ParseError e1) `mappend` (ParseError e2) = ParseError $ e1 <> " " <> e2
 
 -- | Check that the given macaroon has a correct signature
 verifySig :: Key -> Macaroon -> Either ValidationError Macaroon
