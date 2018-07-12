@@ -25,7 +25,7 @@ import           Data.Either
 import           Data.Either.Validation
 import           Data.Foldable
 import           Data.Maybe
-import           Data.Monoid
+import           Data.Monoid hiding ((<>))
 import           Data.Semigroup
 
 import           Crypto.Macaroon.Internal
