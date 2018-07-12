@@ -1,6 +1,10 @@
-# This file has been generated -- see https://github.com/hvr/multi-ghc-travis
-language: c
+# Configuration copied from docs.haskellstack.org
 sudo: false
+
+# Caching so the next build will be fast too.
+cache:
+  directories:
+  - $HOME/.stack
 
 notifications:
   webhooks:
@@ -10,91 +14,42 @@ notifications:
     on_failure: always
     on_start: never
 
-cache:
-  directories:
-    - $HOME/.cabsnap
-    - $HOME/.cabal/packages
-
-before_cache:
-  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/build-reports.log
-  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.tar
-
-matrix:
-  include:
-    - env: CABALVER=1.18 GHCVER=7.8.4 PUSH_DOCS=false
-      compiler: ": #GHC 7.8.4"
-      addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4], sources: [hvr-ghc]}}
-    - env: CABALVER=1.22 GHCVER=7.10.2 PUSH_DOCS=true
-      compiler: ": #GHC 7.10.2"
-      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.2], sources: [hvr-ghc]}}
-
 env:
   global:
     - GH_REF: github.com/jtanguy/hmacaroons.git
     - secure: "cpcJvp233pVNy05VeWgzUEw1xYCekk1xT1x2grzhUx8mpCqXZda+Xbu76QCqLSESPgc8Q39m6bR8c+oLkbgRM1U+hR91+2sccKaP9cLTad0yoPRdm6qDB96mzLcEX+yl22GVVzSg20AZx0B9edIT9z7pnEVMJV4iDwhsx/p5Uas="
 
+matrix:
+  include:
+  - env: RESOLVER=lts-11.17 PUSH_DOCS=true
+    compiler: ": #stack 8.2.2"
+  - env: RESOLVER=lts-12.0 PUSH_DOCS=false
+    compiler: ": #stack 8.4.3"
+  - env: RESOLVER=nightly PUSH_DOCS=false
+    compiler: ": #stack nightly"
+  allow_failures:
+    - env: RESOLVER=nightly
+
+
 before_install:
-  - unset CC
-  - export PATH=$HOME/.cabal/bin:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+- unset CC
+# Download and unpack the stack executable
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 install:
-  - cabal --version
-  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
-  - if [ -f $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz ];
-    then
-      zcat $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz >
-      $HOME/.cabal/packages/hackage.haskell.org/00-index.tar;
-    fi
-  - travis_retry cabal update -v
-  - sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
-  - cabal install --only-dependencies --enable-tests --enable-benchmarks --dry -v > installplan.txt
-  - sed -i -e '1,/^Resolving /d' installplan.txt; cat installplan.txt
+# Add in extra-deps for older snapshots, as necessary
+- stack --no-terminal --install-ghc --resolver $RESOLVER test --bench --dry-run || ( \
+    stack --no-terminal $ARGS build cabal-install && \
+    stack --no-terminal $ARGS solver --update-config)
+# Build the dependencies
+- stack --no-terminal --install-ghc --resolver $RESOLVER test --bench --only-dependencies
 
-    # check whether current requested install-plan matches cached package-db snapshot
-  - if diff -u installplan.txt $HOME/.cabsnap/installplan.txt;
-    then
-      echo "cabal build-cache HIT";
-      rm -rfv .ghc;
-      cp -a $HOME/.cabsnap/ghc $HOME/.ghc;
-      cp -a $HOME/.cabsnap/lib $HOME/.cabsnap/share $HOME/.cabsnap/bin $HOME/.cabal/;
-    else
-      echo "cabal build-cache MISS";
-      rm -rf $HOME/.cabsnap;
-      mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
-      cabal install --only-dependencies --enable-tests --enable-benchmarks;
-    fi
-
-    # snapshot package-db on cache miss
-  - if [ ! -d $HOME/.cabsnap ];
-    then
-      echo "snapshotting package-db to build-cache";
-      mkdir $HOME/.cabsnap;
-      cp -a $HOME/.ghc $HOME/.cabsnap/ghc;
-      cp -a $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin installplan.txt $HOME/.cabsnap/;
-    fi
-
-# Here starts the actual work to be performed for the package under test;
-# any command which exits with a non-zero exit code causes the build to fail.
 script:
-  - cabal install hpc-coveralls --constraint=retry==0.6
-  - if [ 1.18 = $CABALVER ];
-    then
-      cabal configure --enable-tests --enable-benchmarks -v2 --enable-library-coverage;
-    else
-      cabal configure --enable-tests --enable-benchmarks -v2 --enable-coverage;
-    fi
-  - cabal build   # this builds all libraries and executables (including tests/benchmarks)
-  - run-cabal-test test
-  - cabal bench --benchmark-options="--output benchmark.html"
-  - cabal check
-  - cabal sdist   # tests that a source-distribution can be generated
-    # Check that the resulting source distribution can be built & installed.
-    # If there are no other `.tar.gz` files in `dist`, this can be even simpler:
-    # `cabal install --force-reinstalls dist/*-*.tar.gz`
-  - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
-      (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
+  - stack --no-terminal --resolver $RESOLVER test --coverage
+  - stack --no-terminal --resolver $RESOLVER bench
 
 after_script:
   - if [ true = $PUSH_DOCS ]; then bash ./scripts/pushdoc.sh; fi
-  - hpc-coveralls test
 # EOF
