@@ -39,10 +39,6 @@ before_install:
 - travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 install:
-# Add in extra-deps for older snapshots, as necessary
-- stack --no-terminal --install-ghc --resolver $RESOLVER test --bench --dry-run || ( \
-    stack --no-terminal $ARGS build cabal-install && \
-    stack --no-terminal $ARGS solver --update-config)
 # Build the dependencies
 - stack --no-terminal --install-ghc --resolver $RESOLVER test --bench --only-dependencies
 
