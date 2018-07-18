@@ -63,9 +63,14 @@ deserialize = parseOnly macaroon . B64.decodeLenient
 macaroon :: Parser Macaroon
 macaroon = do
     ps <- many packet <* endOfInput
-    let ([("location",l),("identifier",i)],ps') = splitAt 2 ps
+    let (header,ps') = splitAt 2 ps
+    (l, i) <- case header of
+      [("location",l),("identifier",i)] -> pure (l, i)
+      _                                 -> fail "missing macaroon header"
     let (caveats,sig) = splitAt (length ps' - 1) ps'
-    let [("signature",s)] = sig
+    s <- case sig of
+        [("signature", s)] -> pure s
+        _                  -> fail "missing macaroon signature"
     return $ MkMacaroon l i (map (mkCaveat l) (groupBy splitCavs caveats)) s
   where
     mkCaveat _ [("cid",c),("vid",v),("cl",l)] = MkCaveat c v l

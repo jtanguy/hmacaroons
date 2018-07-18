@@ -26,6 +26,7 @@ tests :: TestTree
 tests = testGroup "Crypto.Macaroon.Serializer.Base64" [ basic
                                                       , minted
                                                       , minted2
+                                                      , emptyString
                                                       -- , minted3
                                                       ]
 
@@ -87,3 +88,8 @@ mint2Trimmed = testCase "Serialization" $
 mint2Des = testCase "Deserialization" $
     Right m3 @=? (deserialize . serialize) m3
 
+emptyString :: TestTree
+emptyString = testGroup "Empty string" [ emptyStringDes ]
+
+emptyStringDes = testCase "Deserialization should fail gracefully" $
+    Left "Failed reading: missing macaroon header" @=? deserialize ""
