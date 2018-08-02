@@ -44,7 +44,7 @@ module Crypto.Macaroon (
     , addFirstPartyCaveat
     -- , addThirdPartyCaveat
     -- * Serialize
-    , module Crypto.Macaroon.Serializer.Base64
+    , module Crypto.Macaroon.Serializer.Binary.V1
     -- * Verify
     , module Crypto.Macaroon.Verifier
     ) where
@@ -55,7 +55,7 @@ import           Data.Byteable
 import qualified Data.ByteString                   as BS
 
 import           Crypto.Macaroon.Internal
-import           Crypto.Macaroon.Serializer.Base64
+import           Crypto.Macaroon.Serializer.Binary.V1
 import           Crypto.Macaroon.Verifier
 
 -- | Create a Macaroon from its key, identifier and location

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-|
-Module      : Crypto.Macaroon.Serializer.Base64
+Module      : Crypto.Macaroon.Serializer.Binary.V1
 Copyright   : (c) 2015 Julien Tanguy
 License     : BSD3
 
@@ -11,7 +11,7 @@ Portability : portable
 Base64 serializer/deserializer
 
 -}
-module Crypto.Macaroon.Serializer.Base64 (
+module Crypto.Macaroon.Serializer.Binary.V1 (
         serialize
       , deserialize
       ) where
@@ -63,14 +63,9 @@ deserialize = parseOnly macaroon . B64.decodeLenient
 macaroon :: Parser Macaroon
 macaroon = do
     ps <- many packet <* endOfInput
-    let (header,ps') = splitAt 2 ps
-    (l, i) <- case header of
-      [("location",l),("identifier",i)] -> pure (l, i)
-      _                                 -> fail "missing macaroon header"
+    let ([("location",l),("identifier",i)],ps') = splitAt 2 ps
     let (caveats,sig) = splitAt (length ps' - 1) ps'
-    s <- case sig of
-        [("signature", s)] -> pure s
-        _                  -> fail "missing macaroon signature"
+    let [("signature",s)] = sig
     return $ MkMacaroon l i (map (mkCaveat l) (groupBy splitCavs caveats)) s
   where
     mkCaveat _ [("cid",c),("vid",v),("cl",l)] = MkCaveat c v l

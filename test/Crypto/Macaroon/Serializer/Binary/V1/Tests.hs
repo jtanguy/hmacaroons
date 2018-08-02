@@ -9,7 +9,7 @@ Maintainer  : julien.tanguy@jhome.fr
 This test suite is based on the pymacaroons test suite:
 <https://github.com/ecordell/pymacaroons>
 -}
-module Crypto.Macaroon.Serializer.Base64.Tests where
+module Crypto.Macaroon.Serializer.Binary.V1.Tests where
 
 
 import qualified Data.ByteString.Char8 as B8
@@ -18,15 +18,14 @@ import Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
 
 import           Crypto.Macaroon
-import           Crypto.Macaroon.Serializer.Base64
+import           Crypto.Macaroon.Serializer.Binary.V1
 
 import Crypto.Macaroon.Instances
 
 tests :: TestTree
-tests = testGroup "Crypto.Macaroon.Serializer.Base64" [ basic
+tests = testGroup "Crypto.Macaroon.Serializer.Binary.V1" [ basic
                                                       , minted
                                                       , minted2
-                                                      , emptyString
                                                       -- , minted3
                                                       ]
 
@@ -88,8 +87,3 @@ mint2Trimmed = testCase "Serialization" $
 mint2Des = testCase "Deserialization" $
     Right m3 @=? (deserialize . serialize) m3
 
-emptyString :: TestTree
-emptyString = testGroup "Empty string" [ emptyStringDes ]
-
-emptyStringDes = testCase "Deserialization should fail gracefully" $
-    Left "Failed reading: missing macaroon header" @=? deserialize ""

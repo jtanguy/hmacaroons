@@ -1,5 +1,5 @@
 name:                hmacaroons
-version:             0.5.0.0
+version:             0.6.0.0
 synopsis:            Haskell implementation of macaroons
 description:
   Hmacaroons is a pure haskell implementation of macaroons. It aims to
@@ -53,7 +53,7 @@ source-repository head
 library
   exposed-modules:     Crypto.Macaroon
                        -- Crypto.Macaroon.Binder
-                       Crypto.Macaroon.Serializer.Base64
+                       Crypto.Macaroon.Serializer.Binary.V1
                        Crypto.Macaroon.Verifier
   other-modules:       Crypto.Macaroon.Internal
                        Crypto.Macaroon.Verifier.Internal
