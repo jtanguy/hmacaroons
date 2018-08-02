@@ -18,7 +18,6 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 
 import           Crypto.Macaroon
-import           Crypto.Macaroon.Serializer.Base64
 
 tests :: TestTree
 tests = testGroup "Crypto.Macaroon" [ basic

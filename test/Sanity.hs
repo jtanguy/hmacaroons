@@ -10,7 +10,6 @@ import           Data.Hex
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import qualified Crypto.Macaroon.Serializer.Base64.Tests
 import qualified Crypto.Macaroon.Tests
 
 tests :: TestTree
