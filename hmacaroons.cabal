@@ -54,6 +54,7 @@ library
   exposed-modules:     Crypto.Macaroon
                        -- Crypto.Macaroon.Binder
                        Crypto.Macaroon.Serializer.Binary.V1
+                       Crypto.Macaroon.Serializer.Binary.V2
                        Crypto.Macaroon.Verifier
   other-modules:       Crypto.Macaroon.Internal
                        Crypto.Macaroon.Verifier.Internal
