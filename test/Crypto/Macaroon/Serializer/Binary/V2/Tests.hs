@@ -17,7 +17,7 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
 
-import           Crypto.Macaroon
+import           Crypto.Macaroon hiding (serialize, deserialize)
 import           Crypto.Macaroon.Serializer.Binary.V2
 
 import Crypto.Macaroon.Instances

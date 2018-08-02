@@ -35,6 +35,7 @@ import           Data.Hex
 import           Data.Int
 import           Data.List
 import           Data.Maybe
+import           Data.Monoid
 import           Data.Serialize
 import           Data.Word
 
