@@ -12,17 +12,10 @@ This test suite is based on the pymacaroons test suite:
 module Crypto.Macaroon.Verifier.Tests where
 
 
-import qualified Data.ByteString.Char8     as B8
-import           Data.Either
-import           Data.List
+import qualified Data.ByteString.Char8 as B8
 import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.QuickCheck
 
 import           Crypto.Macaroon
-import           Crypto.Macaroon.Verifier
-
-import           Crypto.Macaroon.Instances
 
 tests :: TestTree
 tests = testGroup "Crypto.Macaroon.Verifier" [ ]

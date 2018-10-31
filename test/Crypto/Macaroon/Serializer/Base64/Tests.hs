@@ -12,15 +12,14 @@ This test suite is based on the pymacaroons test suite:
 module Crypto.Macaroon.Serializer.Base64.Tests where
 
 
-import qualified Data.ByteString.Char8 as B8
-import Test.Tasty
-import Test.Tasty.HUnit
+import qualified Data.ByteString.Char8     as B8
+import           Test.Tasty
+import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
 
 import           Crypto.Macaroon
-import           Crypto.Macaroon.Serializer.Base64
 
-import Crypto.Macaroon.Instances
+import           Crypto.Macaroon.Instances
 
 tests :: TestTree
 tests = testGroup "Crypto.Macaroon.Serializer.Base64" [ basic

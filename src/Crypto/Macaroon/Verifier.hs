@@ -23,14 +23,8 @@ module Crypto.Macaroon.Verifier (
 ) where
 
 
-import           Control.Applicative
 import           Control.Monad                     hiding (forM)
 import           Control.Monad.IO.Class
-import           Data.Attoparsec.ByteString
-import           Data.Attoparsec.ByteString.Char8
-import           Data.Bool
-import qualified Data.ByteString                   as BS
-import           Data.Either.Combinators
 import           Data.Traversable
 
 import           Crypto.Macaroon.Internal

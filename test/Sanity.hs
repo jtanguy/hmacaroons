@@ -3,15 +3,12 @@ module Sanity where
 
 import           Crypto.Hash
 import           Data.Byteable
-import           Data.ByteString                         (ByteString)
-import qualified Data.ByteString                         as B
+import           Data.ByteString  (ByteString)
+import qualified Data.ByteString  as B
 import           Data.Hex
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
-
-import qualified Crypto.Macaroon.Serializer.Base64.Tests
-import qualified Crypto.Macaroon.Tests
 
 tests :: TestTree
 tests = testGroup "Python HMAC Sanity check" [ checkKey

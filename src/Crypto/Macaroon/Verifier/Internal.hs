@@ -15,20 +15,15 @@ Portability : portable
 -}
 module Crypto.Macaroon.Verifier.Internal where
 
-import           Control.Applicative
 import           Control.Arrow            ((&&&))
-import           Control.Monad
 import           Control.Monad.IO.Class
 import           Crypto.Hash
 import           Data.Bool
 import           Data.Byteable
 import qualified Data.ByteString          as BS
-import           Data.Either
-import           Data.Either.Validation
 import           Data.Foldable
 import           Data.List.NonEmpty       (NonEmpty, nonEmpty)
 import           Data.Maybe
-import           Data.Semigroup
 import           Data.Text                (Text)
 
 import           Crypto.Macaroon.Internal

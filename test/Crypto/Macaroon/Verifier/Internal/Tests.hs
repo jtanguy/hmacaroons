@@ -14,9 +14,6 @@ module Crypto.Macaroon.Verifier.Internal.Tests where
 import           Data.Bool
 import qualified Data.ByteString                   as BS
 import qualified Data.ByteString.Char8             as B8
-import           Data.Either
-import           Data.Either.Validation
-import           Data.List
 import           Data.List.NonEmpty                (NonEmpty (..))
 import           Test.Tasty
 import           Test.Tasty.HUnit
