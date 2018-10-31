@@ -24,7 +24,7 @@ module Crypto.Macaroon.Verifier (
 
 
 import           Control.Monad                     hiding (forM)
-import           Control.Monad.IO.Class
+import           Data.Functor.Identity
 import           Data.Traversable
 
 import           Crypto.Macaroon.Internal
@@ -36,7 +36,7 @@ import           Crypto.Macaroon.Verifier.Internal
 -- and verifiers.
 --
 -- A verifier is a function of type
--- @'MonadIO' m => 'Caveat' -> m VerifierResult@.
+-- @'Monad' m => 'Caveat' -> m VerifierResult@.
 --
 -- It should return:
 --
@@ -44,10 +44,17 @@ import           Crypto.Macaroon.Verifier.Internal
 -- (for instance a time verifier is given an action caveat);
 -- * 'Refused' ('ParseError' reason) if the verifier  is related to the
 -- caveat, but failed to parse it completely;
--- * 'Refused' ('ValidatorError' reason) if the verifier is related to the
+-- * 'Refused' ('VerifierError' reason) if the verifier is related to the
 -- caveat, parsed it and invalidated it;
 -- * 'Verified' if the verifier has successfully verified the
 -- given caveat
-verify :: (Functor m, MonadIO m) => Secret -> [Caveat -> m VerifierResult] -> Macaroon -> m (Either ValidationError Macaroon)
+verify :: (Monad m) => Secret -> [Caveat -> m VerifierResult] -> Macaroon -> m (Either ValidationError Macaroon)
 verify secret verifiers m = join <$> forM (verifySig secret m) (verifyCavs verifiers)
 
+-- | Synchronously verify a macaroon signature and caveats, given the
+-- corresponding Secret and verifiers.
+-- This is a variant of @verify@ working with synchronous verifiers.
+verifySync :: Secret -> [Caveat -> VerifierResult] -> Macaroon -> Either ValidationError Macaroon
+verifySync secret verifiers m =
+    let verifiersIdent = fmap (fmap Identity) verifiers
+    in runIdentity $ verify secret verifiersIdent m

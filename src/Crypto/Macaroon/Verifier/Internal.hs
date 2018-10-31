@@ -16,7 +16,6 @@ Portability : portable
 module Crypto.Macaroon.Verifier.Internal where
 
 import           Control.Arrow            ((&&&))
-import           Control.Monad.IO.Class
 import           Crypto.Hash
 import           Data.Bool
 import           Data.Byteable
@@ -59,7 +58,7 @@ verifySig k m = bool (Left SigMismatch) (Right m) $
     derivedKey = toBytes (hmac "macaroons-key-generator" k :: HMAC SHA256)
 
 -- | Given a list of verifiers, verify each caveat of the given macaroon
-verifyCavs :: forall m. (Functor m, MonadIO m)
+verifyCavs :: forall m. (Applicative m)
            => [Caveat -> m VerifierResult]
            -> Macaroon
            -> m (Either ValidationError Macaroon)
