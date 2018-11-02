@@ -47,10 +47,10 @@ verify :: (Applicative m)
        -> m (VerifierResult pe ve)]
        -> Macaroon
        -> m (Either (ValidationError pe ve) Macaroon)
-verify secret verifiers =
+verify secret verifiers m =
     let checkSig = verifySig secret
-        checkCavs = either (pure . Left) (verifyCavs verifiers)
-    in checkCavs . checkSig
+        checkCavs = fmap (fmap $ const m) . either (pure . Left) (verifyCavs verifiers . caveats )
+    in checkCavs . checkSig $ m
 
 -- | Synchronously verify a macaroon signature and caveats, given the
 -- corresponding Secret and verifiers.
