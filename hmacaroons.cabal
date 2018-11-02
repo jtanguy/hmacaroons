@@ -70,8 +70,7 @@ library
                   -- nonce,
                   -- cipher-aes >=0.2 && <0.3,
                   deepseq >= 1.1,
-                  hex >= 0.1,
-                  text >= 1.2
+                  hex >= 0.1
   hs-source-dirs:      src
   default-language:    Haskell2010
 
@@ -93,8 +92,7 @@ benchmark bench
                   either >=4.4,
                   hex >= 0.1,
                   deepseq >= 1.1,
-                  criterion >= 1.1,
-                  text >= 1.2
+                  criterion >= 1.1
 
 test-suite test
   default-language: Haskell2010
@@ -115,5 +113,4 @@ test-suite test
                   tasty-quickcheck >= 0.8,
                   QuickCheck >= 2.8,
                   deepseq >= 1.1,
-                  transformers >= 0.3,
-                  text >= 1.2
+                  transformers >= 0.3

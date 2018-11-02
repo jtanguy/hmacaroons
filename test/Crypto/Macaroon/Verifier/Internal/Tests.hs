@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-|
 Copyright   : (c) 2015 Julien Tanguy
 License     : BSD3
@@ -34,6 +35,10 @@ tests = testGroup "Crypto.Macaroon.Verifier.Internal" [ sigs
  -}
 sec = B8.pack "this is our super secret key; only we should know it"
 
+type VerifierResult' = VerifierResult String String
+type VerifierError' = VerifierError String String
+type ValidationError' = ValidationError String String
+
 m :: Macaroon
 m = create sec key loc
   where
@@ -43,7 +48,7 @@ m = create sec key loc
 m2 :: Macaroon
 m2 = addFirstPartyCaveat "test = caveat" m
 
-vtest :: Caveat -> IO VerifierResult
+vtest :: Caveat -> IO VerifierResult'
 vtest c = return $ if "test" `BS.isPrefixOf` cid c then
     bool (Refused (VerifierError "Failed")) Verified $ "test = caveat" == cid c
     else Unrelated
@@ -52,7 +57,7 @@ vtest c = return $ if "test" `BS.isPrefixOf` cid c then
 m3 :: Macaroon
 m3 = addFirstPartyCaveat "value = 42" m2
 
-vval :: Caveat -> IO VerifierResult
+vval :: Caveat -> IO VerifierResult'
 vval c = return $ if "value" `BS.isPrefixOf` cid c then
     bool (Refused (VerifierError "Failed")) Verified $ "value = 42" == cid c
     else Unrelated
@@ -62,9 +67,9 @@ vval c = return $ if "value" `BS.isPrefixOf` cid c then
  - Tests
  -}
 
-sigs = testProperty "Signatures" $ \sm -> verifySig (secret sm) (macaroon sm) == Right (macaroon sm)
+sigs = testProperty "Signatures" $ \sm -> verifySig @String @String (secret sm) (macaroon sm) == Right (macaroon sm)
 
-getCids :: Either ValidationError a -> Maybe (NonEmpty (Key, [VerifierError]))
+getCids :: Either ValidationError' a -> Maybe (NonEmpty (Key, [VerifierError']))
 getCids res =
     let errors = either getCaveats (const Nothing)
         getCid (cav, errors) = (cid cav, errors)
@@ -75,19 +80,19 @@ getCids res =
 
 firstParty = testGroup "First party caveats" [
     testCase "Zero caveat" $ do
-        res <- verifyCavs [] m :: IO (Either ValidationError Macaroon)
+        res <- verifyCavs [] m :: IO (Either ValidationError' Macaroon)
         Right m @=? res
     , testCase "One caveat empty" $ do
-        res <- verifyCavs [] m2 :: IO (Either ValidationError Macaroon)
+        res <- verifyCavs [] m2 :: IO (Either ValidationError' Macaroon)
         Just (("test = caveat",  []) :| [])@=? getCids res
     , testCase "One caveat fail" $ do
-        res <- verifyCavs [vval] m2 :: IO (Either ValidationError Macaroon)
+        res <- verifyCavs [vval] m2 :: IO (Either ValidationError' Macaroon)
         Just (("test = caveat",  []) :| [])@=? getCids res
     , testCase "One caveat win" $ do
-        res <- verifyCavs [vtest] m2 :: IO (Either ValidationError Macaroon)
+        res <- verifyCavs [vtest] m2 :: IO (Either ValidationError' Macaroon)
         Right m2 @=? res
     , testCase "Two caveat win" $ do
-        res <- verifyCavs [vtest, vval] m3 :: IO (Either ValidationError Macaroon)
+        res <- verifyCavs [vtest, vval] m3 :: IO (Either ValidationError' Macaroon)
         Right m3 @=? res
     ]
 

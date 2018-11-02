@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -48,13 +47,13 @@ import           Crypto.Macaroon.Verifier.Internal
 -- caveat, parsed it and invalidated it;
 -- * 'Verified' if the verifier has successfully verified the
 -- given caveat
-verify :: (Monad m) => Secret -> [Caveat -> m VerifierResult] -> Macaroon -> m (Either ValidationError Macaroon)
+verify :: (Monad m) => Secret -> [Caveat -> m (VerifierResult pe ve)] -> Macaroon -> m (Either (ValidationError pe ve) Macaroon)
 verify secret verifiers m = join <$> forM (verifySig secret m) (verifyCavs verifiers)
 
 -- | Synchronously verify a macaroon signature and caveats, given the
 -- corresponding Secret and verifiers.
 -- This is a variant of @verify@ working with synchronous verifiers.
-verifySync :: Secret -> [Caveat -> VerifierResult] -> Macaroon -> Either ValidationError Macaroon
+verifySync :: Secret -> [Caveat -> VerifierResult pe ve] -> Macaroon -> Either (ValidationError pe ve) Macaroon
 verifySync secret verifiers m =
     let verifiersIdent = fmap (fmap Identity) verifiers
     in runIdentity $ verify secret verifiersIdent m
