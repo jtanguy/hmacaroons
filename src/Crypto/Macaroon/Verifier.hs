@@ -1,7 +1,3 @@
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-|
 Module      : Crypto.Macaroon.Verifier
 Copyright   : (c) 2015 Julien Tanguy
@@ -22,9 +18,7 @@ module Crypto.Macaroon.Verifier (
 ) where
 
 
-import           Control.Monad                     hiding (forM)
 import           Data.Functor.Identity
-import           Data.Traversable
 
 import           Crypto.Macaroon.Internal
 import           Crypto.Macaroon.Verifier.Internal
@@ -47,8 +41,16 @@ import           Crypto.Macaroon.Verifier.Internal
 -- caveat, parsed it and invalidated it;
 -- * 'Verified' if the verifier has successfully verified the
 -- given caveat
-verify :: (Monad m) => Secret -> [Caveat -> m (VerifierResult pe ve)] -> Macaroon -> m (Either (ValidationError pe ve) Macaroon)
-verify secret verifiers m = join <$> forM (verifySig secret m) (verifyCavs verifiers)
+verify :: (Applicative m)
+       => Secret
+       -> [Caveat
+       -> m (VerifierResult pe ve)]
+       -> Macaroon
+       -> m (Either (ValidationError pe ve) Macaroon)
+verify secret verifiers =
+    let checkSig = verifySig secret
+        checkCavs = either (pure . Left) (verifyCavs verifiers)
+    in checkCavs . checkSig
 
 -- | Synchronously verify a macaroon signature and caveats, given the
 -- corresponding Secret and verifiers.
