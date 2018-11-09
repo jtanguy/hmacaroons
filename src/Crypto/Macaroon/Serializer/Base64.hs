@@ -21,15 +21,12 @@ import           Control.Monad
 import           Crypto.Macaroon.Internal
 import           Data.Attoparsec.ByteString
 import qualified Data.Attoparsec.ByteString.Char8 as A8
-import           Data.Bits
 import qualified Data.ByteString                  as BS
 import qualified Data.ByteString.Base64.URL       as B64
 import qualified Data.ByteString.Char8            as B8
 import           Data.Char
 import           Data.Hex
-import           Data.Int
 import           Data.List
-import           Data.Maybe
 import           Data.Serialize
 import           Data.Word
 

@@ -1,5 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 {-|
 Module      : Crypto.Macaroon.Verifier.Internal
 Copyright   : (c) 2015 Julien Tanguy
@@ -14,57 +16,47 @@ Portability : portable
 -}
 module Crypto.Macaroon.Verifier.Internal where
 
-import           Control.Applicative
-import           Control.Monad
-import           Control.Monad.IO.Class
+import           Control.Arrow            ((&&&))
 import           Crypto.Hash
 import           Data.Bool
 import           Data.Byteable
 import qualified Data.ByteString          as BS
-import           Data.Either
-import           Data.Either.Validation
 import           Data.Foldable
+import           Data.List.NonEmpty       (NonEmpty, nonEmpty)
 import           Data.Maybe
-import           Data.Monoid hiding ((<>))
-import           Data.Semigroup
 
 import           Crypto.Macaroon.Internal
 
 
 -- | Type representing the result of a validator
-data VerifierResult = Verified -- ^ The caveat is correctly parsed and verified
-                    | Refused ValidationError -- ^ The caveat is refused (Either a parse error or a validation error
+data VerifierResult pe ve = Verified -- ^ The caveat is correctly parsed and verified
+                    | Refused (VerifierError pe ve) -- ^ The caveat is refused
                     | Unrelated -- ^ The given verifier does not verify the caveat
-                    deriving (Show, Eq)
 
--- | Type representing different validation errors.
--- Only 'ParseError' and 'ValidatorError' are exported, @SigMismatch@ and
--- @NoVerifier@ are used internally and should not be used by the user
-data ValidationError = SigMismatch -- ^ Signatures do not match
-                     | NoVerifier -- ^ No verifier can handle a given caveat
-                     | ParseError String -- ^ A verifier had a parse error
-                     | ValidatorError String -- ^ A verifier failed
-                     deriving (Show,Eq)
+deriving instance (Show pe, Show ve) => Show (VerifierResult pe ve)
+deriving instance (Eq pe, Eq ve) => Eq (VerifierResult pe ve)
 
+-- | Type representing an error returned by a verifier (on a caveat it's supposed to handle)
+data VerifierError pe ve = ParseError pe -- ^ The caveat couldn't be parsed
+                   | VerifierError ve -- ^ The verifier understood the caveat but couldn't satisfy it.
 
--- | The 'Semigroup' instance is written so @SigMismatch@ is an annihilator
-instance Semigroup ValidationError where
-    NoVerifier <> e = e
-    e <> NoVerifier = e
-    SigMismatch <> _ = SigMismatch
-    _ <> SigMismatch = SigMismatch
-    (ValidatorError e) <> (ParseError _) = ValidatorError e
-    (ParseError _) <> (ValidatorError e) = ValidatorError e
-    (ValidatorError e1) <> (ValidatorError e2) = ValidatorError $ e1 <> " " <> e2
-    (ParseError e1) <> (ParseError e2) = ParseError $ e1 <> " " <> e2
+deriving instance (Show pe, Show ve) => Show (VerifierError pe ve)
+deriving instance (Eq pe, Eq ve) => Eq (VerifierError pe ve)
 
--- | @NoVerifier@ is the identity element
-instance Monoid ValidationError where
-    mempty = NoVerifier
-    mappend = (<>)
+-- | Type alias for a caveat that was not discharged
+--   an empty list means that no verifiers were related to the caveat
+type RemainingCaveat pe ve = (Caveat, [VerifierError pe ve])
+
+-- | Type representing a macaroon validation error.
+data ValidationError pe ve = SigMismatch -- ^ Signatures do not match
+                     | RemainingCaveats (NonEmpty (RemainingCaveat pe ve))
+                     -- ^ There are remaining caveats
+                     --
+deriving instance (Show pe, Show ve) => Show (ValidationError pe ve)
+deriving instance (Eq pe, Eq ve) => Eq (ValidationError pe ve)
 
 -- | Check that the given macaroon has a correct signature
-verifySig :: Key -> Macaroon -> Either ValidationError Macaroon
+verifySig :: Key -> Macaroon -> Either (ValidationError pe ve) Macaroon
 verifySig k m = bool (Left SigMismatch) (Right m) $
     signature m == foldl' hash (toBytes (hmac derivedKey (identifier m) :: HMAC SHA256)) (caveats m)
   where
@@ -72,26 +64,37 @@ verifySig k m = bool (Left SigMismatch) (Right m) $
     derivedKey = toBytes (hmac "macaroons-key-generator" k :: HMAC SHA256)
 
 -- | Given a list of verifiers, verify each caveat of the given macaroon
-verifyCavs :: (Functor m, MonadIO m)
-           => [Caveat -> m VerifierResult]
+verifyCavs :: forall m pe ve. (Applicative m)
+           => [Caveat -> m (VerifierResult pe ve)]
            -> Macaroon
-           -> m (Either ValidationError Macaroon)
-verifyCavs verifiers m = gatherEithers <$> mapM validateCaveat (caveats m)
+           -> m (Either (ValidationError pe ve) Macaroon)
+verifyCavs verifiers m = toEither <$> errors
   where
-    {-
-     - validateCaveat :: Caveat -> m (Validation String Caveat)
-     - We can use fromJust here safely since we use a `Just Failure` as a
-     - starting value for the foldM. We are guaranteed to have a `Just something`
-     - from it.
-     -}
-    validateCaveat c = fmap (const c) . fromJust <$> foldM (\res v -> mappend res . fmap eitherToValidation . vResult2MaybeEither <$> v c) (defErr c) verifiers
-    -- vResult2MaybeEither :: VerifierResult -> Maybe (Either ValidationError ())
-    vResult2MaybeEither Unrelated = Nothing
-    vResult2MaybeEither Verified = Just (Right ())
-    vResult2MaybeEither (Refused e)= Just (Left e)
-    -- defErr :: Caveat -> Maybe (Validation String Caveat)
-    defErr c = Just $ Failure NoVerifier
-    -- gatherEithers :: [Validation String Caveat] -> Either String Caveat
-    gatherEithers vs = case partitionEithers . map validationToEither $ vs of
-        ([],_) ->  Right m
-        (errs,_) -> Left (mconcat errs)
+    toEither = maybe (Right m) (Left . RemainingCaveats) . nonEmpty
+    errors = fmap catMaybes $ traverse keepErrors $ caveats m
+
+    -- apply the verifiers to a caveat and only keep errors
+    keepErrors :: Caveat -> m (Maybe (RemainingCaveat pe ve))
+    keepErrors =
+        fmap sequenceA . -- Move the Maybe outside the tuple
+        sequenceA . -- Move the m outside the tuple
+        getTaggedErrors
+
+    -- annotated results
+    getTaggedErrors :: Caveat -> (Caveat, m (Maybe [VerifierError pe ve]))
+    getTaggedErrors = id &&& fmap collapseErrors . applyVerifiers
+
+    -- collapse all the results, @Nothing@ means the caveat has been
+    -- verified
+    collapseErrors :: [VerifierResult pe ve] -> Maybe [VerifierError pe ve]
+    collapseErrors rs =
+      -- using `elem` would require an @Eq@ constraint on pe and ve
+      if any isVerified rs
+        then Nothing
+        else Just [e | Refused e <- rs]
+    isVerified Verified = True
+    isVerified _        = False
+
+    -- apply all the verifiers to a caveat.
+    applyVerifiers :: Caveat -> m [VerifierResult pe ve]
+    applyVerifiers c = traverse ($ c) verifiers

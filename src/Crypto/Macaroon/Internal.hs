@@ -17,9 +17,8 @@ module Crypto.Macaroon.Internal where
 import           Control.DeepSeq
 import           Crypto.Hash
 import           Data.Byteable
-import qualified Data.ByteString        as BS
-import qualified Data.ByteString.Base64 as B64
-import qualified Data.ByteString.Char8  as B8
+import qualified Data.ByteString       as BS
+import qualified Data.ByteString.Char8 as B8
 import           Data.Hex
 import           Data.List
 

@@ -57,6 +57,7 @@ library
                        Crypto.Macaroon.Verifier
   other-modules:       Crypto.Macaroon.Internal
                        Crypto.Macaroon.Verifier.Internal
+  ghc-options:    -fwarn-unused-imports
   build-depends:  base >=4 && < 5,
                   attoparsec >=0.12,
                   transformers >= 0.3,
