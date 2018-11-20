@@ -12,6 +12,7 @@ Portability : portable
 -}
 module Crypto.Macaroon.Verifier (
     verify
+  , verifySync
   , VerifierResult(..)
   , VerifierError(..)
   , ValidationError(..)
