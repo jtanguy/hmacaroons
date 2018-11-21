@@ -77,22 +77,23 @@ getCids res =
         getCaveats _                     = Nothing
     in errors res
 
+type CavResult = IO (Either ValidationError' ())
 
 firstParty = testGroup "First party caveats" [
     testCase "Zero caveat" $ do
-        res <- verifyCavs [] m :: IO (Either ValidationError' Macaroon)
-        Right m @=? res
+        res <- verifyCavs [] (caveats m) :: CavResult
+        Right () @=? res
     , testCase "One caveat empty" $ do
-        res <- verifyCavs [] m2 :: IO (Either ValidationError' Macaroon)
+        res <- verifyCavs [] (caveats m2) :: CavResult
         Just (("test = caveat",  []) :| [])@=? getCids res
     , testCase "One caveat fail" $ do
-        res <- verifyCavs [vval] m2 :: IO (Either ValidationError' Macaroon)
+        res <- verifyCavs [vval] (caveats m2) :: CavResult
         Just (("test = caveat",  []) :| [])@=? getCids res
     , testCase "One caveat win" $ do
-        res <- verifyCavs [vtest] m2 :: IO (Either ValidationError' Macaroon)
-        Right m2 @=? res
+        res <- verifyCavs [vtest] (caveats m2) :: CavResult
+        Right () @=? res
     , testCase "Two caveat win" $ do
-        res <- verifyCavs [vtest, vval] m3 :: IO (Either ValidationError' Macaroon)
-        Right m3 @=? res
+        res <- verifyCavs [vtest, vval] (caveats m3) :: CavResult
+        Right () @=? res
     ]
 

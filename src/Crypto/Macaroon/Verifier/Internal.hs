@@ -63,15 +63,16 @@ verifySig k m = bool (Left SigMismatch) (Right m) $
     hash s c = toBytes (hmac s (vid c `BS.append` cid c) :: HMAC SHA256)
     derivedKey = toBytes (hmac "macaroons-key-generator" k :: HMAC SHA256)
 
--- | Given a list of verifiers, verify each caveat of the given macaroon
+-- | Given a list of verifiers, verify each caveat of the given
+-- list. You shouldn't use it directly unless you're doing fancy multi-step validation
 verifyCavs :: forall m pe ve. (Applicative m)
            => [Caveat -> m (VerifierResult pe ve)]
-           -> Macaroon
-           -> m (Either (ValidationError pe ve) Macaroon)
-verifyCavs verifiers m = toEither <$> errors
+           -> [Caveat]
+           -> m (Either (ValidationError pe ve) ())
+verifyCavs verifiers caveats = toEither <$> errors
   where
-    toEither = maybe (Right m) (Left . RemainingCaveats) . nonEmpty
-    errors = fmap catMaybes $ traverse keepErrors $ caveats m
+    toEither = maybe (Right ()) (Left . RemainingCaveats) . nonEmpty
+    errors = catMaybes <$> traverse keepErrors caveats
 
     -- apply the verifiers to a caveat and only keep errors
     keepErrors :: Caveat -> m (Maybe (RemainingCaveat pe ve))
