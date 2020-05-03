@@ -2,6 +2,7 @@
 setup-cachix:
 	cachix use iohk
 	cachix use mpickering
+	cachix use test-ptitfred
 
 setup-nix-build:
 	mkdir -p .nix-result
