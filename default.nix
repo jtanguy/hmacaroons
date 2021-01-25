@@ -5,6 +5,7 @@
     src = ./.;
   };
 
+  # Have a look at CONTRIBUTING.md
   materialized = ./materialized;
   checkMaterialization = true;
 }
