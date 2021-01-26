@@ -12,11 +12,11 @@ import           Test.Tasty.HUnit
 
 tests :: TestTree
 tests = testGroup "Python HMAC Sanity check" [ checkKey
-    , checkMac1
-    , checkMac2
-    , checkMac3
-    , checkMac4
-    ]
+                                             , checkMac1
+                                             , checkMac2
+                                             , checkMac3
+                                             , checkMac4
+                                             ]
 
 
 secret :: ByteString
@@ -55,4 +55,3 @@ checkMac3 = testCase "HMAC key account time" $
 
 checkMac4 = testCase "HMAC key account time email" $
     "E42BBB02A9A5A303483CB6295C497AE51AD1D5CB10003CBE548D907E7E62F5E4" @=? hex mac4
-
